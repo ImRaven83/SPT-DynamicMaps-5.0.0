@@ -23,6 +23,10 @@ namespace DynamicMaps.UI
 {
     public class ModdedMapScreen : MonoBehaviour
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public ModdedMapScreen(IntPtr ptr) : base(ptr) { }
+
         #region Variables and Declarations
         private EventHandler _adjustMiniMapHandler;
         private UnityEngine.Events.UnityAction<Vector2> _scrollHandler;

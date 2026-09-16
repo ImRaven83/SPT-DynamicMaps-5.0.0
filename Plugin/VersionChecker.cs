@@ -1,7 +1,7 @@
 ﻿using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using BepInEx.Unity.IL2CPP;
 using System;
 using System.Diagnostics;
 using UnityEngine;
@@ -29,7 +29,9 @@ namespace DrakiaXYZ.VersionChecker
             {
                 string errorMessage = $"ERROR: This version of DynamicMaps was built for Tarkov {buildVersion}, but you are running {currentVersion}. Please download the correct plugin version.";
                 Logger.LogError(errorMessage);
-                Chainloader.DependencyErrors.Add(errorMessage);
+                // TODO: unverified for SPT 5.0.0 (IL2CPP) - assumes IL2CppChainloader mirrors the Mono
+                // Chainloader's DependencyErrors list via its singleton instance.
+                IL2CppChainloader.Instance.DependencyErrors.Add(errorMessage);
 
                 if (Config != null)
                 {

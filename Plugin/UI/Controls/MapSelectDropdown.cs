@@ -11,6 +11,10 @@ namespace DynamicMaps.UI.Controls
 {
     public class MapSelectDropdown : MonoBehaviour
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public MapSelectDropdown(IntPtr ptr) : base(ptr) { }
+
         private static readonly HashSet<string> AcceptableExtensions = new HashSet<string>{ "json", "jsonc" };
 
         public event Action<MapDef> OnMapSelected;

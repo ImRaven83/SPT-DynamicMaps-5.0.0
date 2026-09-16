@@ -1,3 +1,4 @@
+using System;
 using BepInEx.Configuration;
 using DynamicMaps.Config;
 using DynamicMaps.Utils;
@@ -7,6 +8,10 @@ namespace DynamicMaps.UI.Components
 {
     internal class MapPeekComponent : MonoBehaviour
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public MapPeekComponent(IntPtr ptr) : base(ptr) { }
+
         public ModdedMapScreen MapScreen { get; set; }
         public RectTransform MapScreenTrueParent { get; set; }
 

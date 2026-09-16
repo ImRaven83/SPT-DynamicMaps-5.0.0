@@ -2,7 +2,7 @@ using System.Reflection;
 using Comfort.Common;
 using DynamicMaps.Config;
 using DynamicMaps.Utils;
-using SPT.Reflection.Patching;
+using SPTushonka.Reflection.Patching;
 using EFT.UI;
 using EFT.UI.Map;
 using HarmonyLib;

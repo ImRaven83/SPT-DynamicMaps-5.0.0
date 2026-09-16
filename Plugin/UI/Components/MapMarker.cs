@@ -11,6 +11,10 @@ namespace DynamicMaps.UI.Components
 {
     public class MapMarker : MonoBehaviour, ILayerBound, IPointerEnterHandler, IPointerExitHandler
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public MapMarker(IntPtr ptr) : base(ptr) { }
+
         // TODO: this seems... not great?
         public static Dictionary<string, Dictionary<LayerStatus, float>> CategoryImageAlphaLayerStatus { get; protected set; }
             = new Dictionary<string, Dictionary<LayerStatus, float>>

@@ -1,3 +1,4 @@
+using System;
 using DynamicMaps.Utils;
 using TMPro;
 using UnityEngine;
@@ -6,6 +7,10 @@ namespace DynamicMaps.UI.Controls
 {
     public abstract class AbstractTextControl : MonoBehaviour
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public AbstractTextControl(IntPtr ptr) : base(ptr) { }
+
         public TextMeshProUGUI Text { get; protected set; }
         public RectTransform RectTransform => gameObject.transform as RectTransform;
 

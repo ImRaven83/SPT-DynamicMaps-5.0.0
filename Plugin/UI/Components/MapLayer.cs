@@ -1,3 +1,4 @@
+using System;
 using DynamicMaps.Data;
 using DynamicMaps.Utils;
 using Unity.VectorGraphics;
@@ -21,6 +22,10 @@ namespace DynamicMaps.UI.Components
 
     public class MapLayer : MonoBehaviour
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public MapLayer(IntPtr ptr) : base(ptr) { }
+
         private static float _fadeMultiplierPerLayer = 0.5f;
         private static float _defaultLevelFallbackAlpha = 0.1f;
 

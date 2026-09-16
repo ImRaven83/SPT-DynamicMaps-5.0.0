@@ -1,3 +1,4 @@
+using System;
 using Comfort.Common;
 using DynamicMaps.Utils;
 using UnityEngine;
@@ -6,6 +7,10 @@ namespace DynamicMaps.UI.Components
 {
     public class TransformMapMarker : MapMarker
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public TransformMapMarker(IntPtr ptr) : base(ptr) { }
+
         private static float _maxCallbackTime = 0.5f;  // how often to call callback in seconds
         private static Vector2 _pivot = new Vector2(0.5f, 0.5f);
 

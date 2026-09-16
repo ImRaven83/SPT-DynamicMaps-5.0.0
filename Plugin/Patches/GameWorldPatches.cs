@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SPT.Reflection.Patching;
+using SPTushonka.Reflection.Patching;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;

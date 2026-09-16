@@ -13,6 +13,10 @@ namespace DynamicMaps.UI.Components
 {
     public class MapView : MonoBehaviour
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public MapView(IntPtr ptr) : base(ptr) { }
+
         private static Vector2 _markerSize = new Vector2(30, 30);
         private static float _zoomMaxScaler = 10f;  // multiplier against zoomMin
         private static float _zoomMinScaler = 1.1f; // divider against ratio of a provided rect

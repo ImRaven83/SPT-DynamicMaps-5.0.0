@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using SPT.Reflection.Patching;
+using SPTushonka.Reflection.Patching;
 using DynamicMaps.Config;
 using DynamicMaps.Utils;
 using EFT.UI.Map;

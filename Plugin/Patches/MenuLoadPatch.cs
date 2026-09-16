@@ -1,12 +1,12 @@
 ﻿using DynamicMaps.UI;
 using DynamicMaps.Utils;
+using EFT;
 using EFT.UI;
 using EFT.UI.Map;
 using HarmonyLib;
 using Newtonsoft.Json;
-using SPT.Common.Http;
-using SPT.Reflection.Patching;
-using SPT.Reflection.Utils;
+using SPTushonka.Common.Http;
+using SPTushonka.Reflection.Patching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +22,13 @@ namespace DynamicMaps.Patches
     {
         private static bool serverConfigLoaded = false;
 
+        // TODO: unverified for SPT 5.0.0 (IL2CPP) - the original target was found via
+        // SPT.Reflection.Utils.PatchConstants (a GClass-obfuscation workaround that no longer exists).
+        // Retargeted onto TarkovApplication.MainMenu, which is directly nameable now and fires once the
+        // main menu is reachable, same ordering intent as the original "run once early" hook.
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.EftTypes
-                .SingleCustom(x => x.GetField("Taxonomy", BindingFlags.Public | BindingFlags.Instance) != null)
-                .GetMethod("Create", BindingFlags.Public | BindingFlags.Static);
+            return AccessTools.Method(typeof(TarkovApplication), nameof(TarkovApplication.MainMenu));
         }
 
         [PatchPrefix]

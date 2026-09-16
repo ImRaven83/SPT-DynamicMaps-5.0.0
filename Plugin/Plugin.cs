@@ -1,15 +1,18 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
+using BepInEx.Unity.IL2CPP;
 using Comfort.Common;
 using DrakiaXYZ.VersionChecker;
 using DynamicMaps.Config;
 using DynamicMaps.Patches;
 using DynamicMaps.UI;
+using DynamicMaps.UI.Components;
+using DynamicMaps.UI.Controls;
 using DynamicMaps.Utils;
 using EFT;
 using EFT.UI;
 using EFT.UI.Map;
-using SPT.Custom.Utils;
+using Il2CppInterop.Runtime.Injection;
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -18,22 +21,28 @@ namespace DynamicMaps
 {
     // the version number here is generated on build and may have a warning if not yet built
     [BepInPlugin("com.mpstark.dynamicmaps", "DynamicMaps", BuildInfo.Version)]
-    [BepInDependency("com.SPT.custom", "4.1.0")]
+    [BepInDependency("sptushonka.custom", "5.0.0")]
     [BepInDependency("com.SamSWAT.HeliCrash.ArysReloaded", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.fika.core", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.fika.headless", BepInDependency.DependencyFlags.SoftDependency)]
-    public class Plugin : BaseUnityPlugin
+    public class Plugin : BasePlugin
     {
+        // TODO: unknown for SPT 5.0.0 (IL2CPP) - the DrakiaXYZ.VersionChecker library vendored below was
+        // written for the Mono client and is unverified here. Needs the real EFT build number to be useful again.
         public const int TarkovVersion = 40743;
         public static Plugin Instance;
-        public static ManualLogSource Log => Instance.Logger;
+        public static ManualLogSource Log => Instance.Log;
         public static string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         public ModdedMapScreen Map;
 
-        internal void Awake()
+        public override void Load()
         {
-            if (!VersionChecker.CheckEftVersion(Logger, Info, Config))
+            Instance = this;
+
+            RegisterIl2CppComponents();
+
+            if (!VersionChecker.CheckEftVersion(Log, Info, Config))
             {
                 throw new Exception("Invalid EFT Version");
             }
@@ -43,9 +52,7 @@ namespace DynamicMaps
             Settings.Init(Config);
             Config.SettingChanged += (x, y) => Map?.ReadConfig();
 
-            // Logger.LogWarning("TEST BUILD OF DYNAMIC MAPS, NO SUPPORT OFFERED.");
-            
-            Instance = this;
+            // Log.LogWarning("TEST BUILD OF DYNAMIC MAPS, NO SUPPORT OFFERED.");
 
             // patches
             new BattleUIScreenShowPatch().Enable();
@@ -62,6 +69,26 @@ namespace DynamicMaps
             new PlayerInventoryThrowItemPatch().Enable();
             new ShowViewButtonPatch().Enable();
             new MenuLoadPatch().Enable();
+        }
+
+        // TODO: unverified for SPT 5.0.0 (IL2CPP) - every custom MonoBehaviour-derived type this plugin
+        // instantiates via AddComponent<T>() must be registered with Il2Cpp's type system first.
+        private static void RegisterIl2CppComponents()
+        {
+            ClassInjector.RegisterTypeInIl2Cpp<ModdedMapScreen>();
+            ClassInjector.RegisterTypeInIl2Cpp<MapLabel>();
+            ClassInjector.RegisterTypeInIl2Cpp<MapLayer>();
+            ClassInjector.RegisterTypeInIl2Cpp<MapMarker>();
+            ClassInjector.RegisterTypeInIl2Cpp<PlayerMapMarker>();
+            ClassInjector.RegisterTypeInIl2Cpp<TransformMapMarker>();
+            ClassInjector.RegisterTypeInIl2Cpp<MapPeekComponent>();
+            ClassInjector.RegisterTypeInIl2Cpp<MapView>();
+            ClassInjector.RegisterTypeInIl2Cpp<MapScrollRect>();
+            ClassInjector.RegisterTypeInIl2Cpp<CursorPositionText>();
+            ClassInjector.RegisterTypeInIl2Cpp<PlayerPositionText>();
+            ClassInjector.RegisterTypeInIl2Cpp<LevelSelectSlider>();
+            ClassInjector.RegisterTypeInIl2Cpp<MapSelectDropdown>();
+            ClassInjector.RegisterTypeInIl2Cpp<PlayerDotSpawner>();
         }
 
         /// <summary>

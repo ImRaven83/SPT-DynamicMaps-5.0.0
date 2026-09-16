@@ -12,6 +12,10 @@ namespace DynamicMaps.UI.Controls
 {
     public class LevelSelectSlider : MonoBehaviour
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public LevelSelectSlider(IntPtr ptr) : base(ptr) { }
+
         private static readonly float LevelTextSize = 15f;
         private static readonly Vector2 LevelTextOffset = new Vector2(10f, 0f);
 

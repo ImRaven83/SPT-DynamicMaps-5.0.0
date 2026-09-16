@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DynamicMaps.Data;
 using DynamicMaps.Utils;
@@ -8,6 +9,10 @@ namespace DynamicMaps.UI.Components
 {
     public class MapLabel : MonoBehaviour, ILayerBound
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public MapLabel(IntPtr ptr) : base(ptr) { }
+
         public string Text { get; protected set; }
         public string Category { get; protected set; }
 

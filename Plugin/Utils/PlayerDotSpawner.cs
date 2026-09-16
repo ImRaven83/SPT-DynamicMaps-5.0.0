@@ -1,3 +1,4 @@
+using System;
 using DynamicMaps.Data;
 using DynamicMaps.UI.Components;
 using DynamicMaps.Utils;
@@ -8,6 +9,10 @@ namespace DynamicMaps
 {
     public class PlayerDotSpawner : MonoBehaviour
     {
+        // IL2CPP interop requires this constructor for classes injected into the Il2Cpp
+        // type system (see ClassInjector.RegisterTypeInIl2Cpp in Plugin.Load()). TODO: unverified for SPT 5.0.0.
+        public PlayerDotSpawner(IntPtr ptr) : base(ptr) { }
+
         private static float _spawnTime = 0.25f;
         private float _timeAccumulator = 0f;
 

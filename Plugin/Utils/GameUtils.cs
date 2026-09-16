@@ -3,23 +3,47 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using SPT.Reflection.Utils;
 using Comfort.Common;
 using DynamicMaps.Config;
 using EFT;
 using EFT.InventoryLogic;
 using EFT.Vehicle;
 using HarmonyLib;
+using SPTushonka.Reflection.Patching;
 using UnityEngine.Profiling;
 
 namespace DynamicMaps.Utils
 {
     public static class GameUtils
     {
-        // reflection        
+        // TODO: unverified for SPT 5.0.0 (IL2CPP) - SPT.Reflection.Utils.ClientAppUtils no longer exists.
+        // TarkovApplication is now a directly nameable type (no GClass reflection needed to find it), so
+        // this patches its Update() method once to capture the running instance instead of GetMainApp().
+        private static TarkovApplication _tarkovApplication;
+
+        private class CacheTarkovApplicationPatch : ModulePatch
+        {
+            protected override MethodBase GetTargetMethod()
+            {
+                return AccessTools.Method(typeof(TarkovApplication), "Update");
+            }
+
+            [PatchPostfix]
+            public static void PatchPostfix(TarkovApplication __instance)
+            {
+                _tarkovApplication = __instance;
+            }
+        }
+
+        static GameUtils()
+        {
+            new CacheTarkovApplicationPatch().Enable();
+        }
+
+        // reflection
         private static FieldInfo _playerCorpseField = AccessTools.Field(typeof(Player), "Corpse");
         private static FieldInfo _playerLastAggressorField = AccessTools.Field(typeof(Player), "LastAggressor");
-        
+
         private static Type _profileInterface = typeof(IEftSession).GetInterfaces().First(i =>
             {
                 var properties = i.GetProperties();
@@ -27,7 +51,7 @@ namespace DynamicMaps.Utils
                        properties.Any(p => p.Name == "Profile");
             });
         private static PropertyInfo _sessionProfileProperty = AccessTools.Property(_profileInterface, "Profile");
-        public static IEftSession Session => ClientAppUtils.GetMainApp().GetClientBackEndSession();
+        public static IEftSession Session => _tarkovApplication?.GetClientBackEndSession();
         public static Profile PlayerProfile => _sessionProfileProperty.GetValue(Session) as Profile;
         //
 
