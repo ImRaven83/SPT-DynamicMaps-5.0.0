@@ -9,24 +9,25 @@ namespace DynamicMaps.ExternalModSupport
         public static bool FikaLoaded { get; private set; }
         public static bool FikaHeadlessLoaded { get; private set; }
 
-        // TODO: unverified for SPT 5.0.0 (IL2CPP) - assumes IL2CppChainloader.Instance.Plugins mirrors
-        // the Mono Chainloader.PluginInfos dictionary (GUID -> PluginInfo).
+        // Verified against BepInEx.Unity.IL2CPP.dll 5.0.0-BEM-20260909: IL2CPPChainloader :
+        // BaseChainloader<BasePlugin>, which exposes Plugins as Dictionary<string, PluginInfo> (GUID -> info),
+        // same shape as Mono's Chainloader.PluginInfos.
         public static void CheckforMods()
         {
             // Check for the presence of SamSwats HeliCrashSides mod
-            if (IL2CppChainloader.Instance.Plugins.ContainsKey("com.SamSWAT.HeliCrash.ArysReloaded"))
+            if (IL2CPPChainloader.Instance.Plugins.ContainsKey("com.SamSWAT.HeliCrash.ArysReloaded"))
             {
                 HeliCrashLoaded = true;
             }
 
             // Check for the presence of Fika mod
-            if (IL2CppChainloader.Instance.Plugins.ContainsKey("com.fika.core"))
+            if (IL2CPPChainloader.Instance.Plugins.ContainsKey("com.fika.core"))
             {
                 FikaLoaded = true;
             }
 
             // Check for the presence of Fika Headless mod
-            if (IL2CppChainloader.Instance.Plugins.ContainsKey("com.fika.headless"))
+            if (IL2CPPChainloader.Instance.Plugins.ContainsKey("com.fika.headless"))
             {
                 FikaHeadlessLoaded = true;
             }

@@ -42,7 +42,7 @@ namespace DynamicMaps
 
             RegisterIl2CppComponents();
 
-            if (!VersionChecker.CheckEftVersion(Log, Info, Config))
+            if (!VersionChecker.CheckEftVersion(Log, Config))
             {
                 throw new Exception("Invalid EFT Version");
             }
