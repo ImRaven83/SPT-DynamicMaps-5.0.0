@@ -1,69 +1,69 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 using DynamicMaps.Data;
-using Unity.VectorGraphics;
+using Svg;
 using UnityEngine;
 
 namespace DynamicMaps.Utils;
+
+// Unity.VectorGraphics isn't part of the base game and has no IL2CPP interop build (Il2CppInterop only
+// generates stubs for assemblies the live game actually ships), so it can no longer tessellate SVGs to a
+// mesh. Maps are rasterized instead, in pure managed code via the Svg NuGet package (verified against the
+// real package: SvgDocument.FromSvg<SvgDocument> + Draw(w, h) -> System.Drawing.Bitmap), then handed to
+// Unity as a plain PNG-backed Sprite the same way TextureUtils.cs already loads textures.
 public static class SvgUtils
 {
     private static readonly Dictionary<(string, int), Sprite> MapCache = [];
     private static readonly Regex ViewBoxRegex = new(@"<svg[^>]*\sviewBox=""([^""]+)""", RegexOptions.Compiled);
-    private static readonly VectorUtils.TessellationOptions[] TesselationIndex =
-    [
-        new() { StepDistance = 1.5f,  MaxCordDeviation = 0.2f,  MaxTanAngleDeviation = 0.2f,  SamplingStepSize = 0.04f },
-        new() { StepDistance = 2f,  MaxCordDeviation = 0.3f,  MaxTanAngleDeviation = 0.25f, SamplingStepSize = 0.05f },
-        new() { StepDistance = 4f,  MaxCordDeviation = 0.4f,  MaxTanAngleDeviation = 0.3f,  SamplingStepSize = 0.06f },
-        new() { StepDistance = 6f,  MaxCordDeviation = 0.5f,  MaxTanAngleDeviation = 0.4f,  SamplingStepSize = 0.07f },
-        new() { StepDistance = 8f,  MaxCordDeviation = 0.6f,  MaxTanAngleDeviation = 0.5f,  SamplingStepSize = 0.08f },
-    ];
+
+    // Replaces the old adaptive mesh-vertex-budget tessellation levels. A rasterized texture has no vertex
+    // budget, just a max dimension, so TesselationIndex (still supplied per-layer by the map jsonc configs)
+    // is now read as a resolution tier instead: higher index -> lower pixel density -> smaller texture.
+    private static readonly float[] PixelsPerSvgUnit = [8f, 4f, 2f, 1f];
+    private const int MaxTextureDimension = 8192;
 
     private static Sprite LoadSvgFromPath(MapLayerDef def, string absolutePath)
     {
         var svgData = File.ReadAllText(absolutePath);
-        
+
         var viewBoxRect = GetViewbox(svgData);
         if (viewBoxRect is null)
             return null;
 
-        using var reader = new StringReader(svgData);
-        var sceneInfo = SVGParser.ImportSVG(
-            reader,
-            ViewportOptions.OnlyApplyRootViewBox,
-            dpi: 0,
-            pixelsPerUnit: 1f,
-            windowWidth: 0,
-            windowHeight: 0);
+        var qualityIndex = Mathf.Clamp(def.TesselationIndex, 0, PixelsPerSvgUnit.Length - 1);
+        var pixelsPerUnit = PixelsPerSvgUnit[qualityIndex];
 
-        var startIndex = Mathf.Clamp(def.TesselationIndex, 0, TesselationIndex.Length - 1);
-        for (var i = startIndex; i < TesselationIndex.Length; i++)
+        var rasterWidth = viewBoxRect.Value.width * pixelsPerUnit;
+        var rasterHeight = viewBoxRect.Value.height * pixelsPerUnit;
+        var maxDimension = Mathf.Max(rasterWidth, rasterHeight);
+        if (maxDimension > MaxTextureDimension)
         {
-            var geometry = VectorUtils.TessellateScene(sceneInfo.Scene, TesselationIndex[i], sceneInfo.NodeOpacity);
-
-            if (OverBudgetVertices(geometry))
-            {
-                Plugin.Log.LogWarning($"Preset {i} over budget for {absolutePath}, trying next.");
-                continue;
-            }
-
-            var sprite = VectorUtils.BuildSprite(
-                geometry,
-                viewBoxRect.Value,
-                svgPixelsPerUnit: 1f,
-                alignment: VectorUtils.Alignment.Center,
-                customPivot: Vector2.zero,
-                gradientResolution: 32,
-                flipYAxis: true);
-
-            return sprite;
+            var scale = MaxTextureDimension / maxDimension;
+            rasterWidth *= scale;
+            rasterHeight *= scale;
+            pixelsPerUnit *= scale;
         }
 
-        return null;
+        var svgDocument = SvgDocument.FromSvg<SvgDocument>(svgData);
+        using var bitmap = svgDocument.Draw(Mathf.Max(1, Mathf.RoundToInt(rasterWidth)), Mathf.Max(1, Mathf.RoundToInt(rasterHeight)));
+        using var stream = new MemoryStream();
+        bitmap.Save(stream, ImageFormat.Png);
+
+        var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        texture.LoadImage(stream.ToArray());
+
+        return Sprite.Create(
+            texture,
+            new Rect(0f, 0f, texture.width, texture.height),
+            new Vector2(0.5f, 0.5f),
+            pixelsPerUnit);
     }
-    
+
     public static Sprite GetOrLoadCachedSprite(MapLayerDef def)
     {
         var key = (def.ImagePath, def.TesselationIndex);
@@ -72,18 +72,6 @@ public static class SvgUtils
 
         var absolutePath = Path.Combine(Plugin.Path, def.ImagePath);
         return MapCache[key] = LoadSvgFromPath(def, absolutePath);
-    }
-    
-    private static bool OverBudgetVertices(List<VectorUtils.Geometry> geometry)
-    {
-        var verts = 0;
-        foreach (var g in geometry)
-        {
-            verts += g.Vertices?.Length ?? 0;
-            if (verts > 65500) return true;
-        }
-
-        return false;
     }
 
     private static Rect? GetViewbox(string svgText)

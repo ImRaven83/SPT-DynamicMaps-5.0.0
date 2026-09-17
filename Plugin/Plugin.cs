@@ -14,7 +14,6 @@ using EFT.UI;
 using EFT.UI.Map;
 using Il2CppInterop.Runtime.Injection;
 using System;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace DynamicMaps
@@ -116,16 +115,6 @@ namespace DynamicMaps
             }
             
             Map.TryAddPeekComponent(battleUI);
-        }
-
-        // Check if the necessary type is available, and tell the user if they installed the mod wrong
-        static Plugin()
-        {
-            if (Type.GetType("Unity.VectorGraphics.SVGParser, Unity.VectorGraphics") == null)
-            {
-                MessageBoxHelper.Show("You have incorrectly installed Dynamic Maps.\nPlease reinstall correctly.\nQuitting.", "DynamicMaps Error", MessageBoxHelper.MessageBoxType.OK);
-                Process.GetCurrentProcess().Kill();
-            }
         }
     }
 }
