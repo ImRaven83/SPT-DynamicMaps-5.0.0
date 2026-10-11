@@ -6,16 +6,37 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-    <Version>1.0.4</Version>
+    <Version>2.0.0</Version>
     <!-- The two lines below will set the output path for the binaries -->
     <OutputPath>bin\$(Configuration)\$(ProjectName)\$(AssemblyName)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
+  <!--
+    SPT 5.0 server libraries are not published to NuGet yet, so reference them from a local folder.
+    Override with: dotnet build -p:SptServerLibDir=path\to\dlls\
+  -->
+  <PropertyGroup>
+    <SptServerLibDir Condition=" '$(SptServerLibDir)' == '' ">$(MSBuildProjectDirectory)\..\References\Server\</SptServerLibDir>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="SPTarkov.Common" Version="4.1.0" />
-    <PackageReference Include="SPTarkov.DI" Version="4.1.0" />
-    <PackageReference Include="SPTarkov.Server.Core" Version="4.1.0" />
+    <Reference Include="SPTarkov.Common">
+      <HintPath>$(SptServerLibDir)SPTarkov.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.DI">
+      <HintPath>$(SptServerLibDir)SPTarkov.DI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Server.Core">
+      <HintPath>$(SptServerLibDir)SPTarkov.Server.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SemanticVersioning">
+      <HintPath>$(SptServerLibDir)SemanticVersioning.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

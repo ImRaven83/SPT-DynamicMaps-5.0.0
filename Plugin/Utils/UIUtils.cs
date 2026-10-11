@@ -1,3 +1,4 @@
+using BepInEx.Unity.IL2CPP.Configuration;
 using BepInEx.Configuration;
 using DG.Tweening;
 using TMPro;
@@ -10,7 +11,7 @@ namespace DynamicMaps.Utils
     {
         public static void ResetRectTransform(this GameObject gameObject)
         {
-            var rectTransform = gameObject.transform as RectTransform;
+            var rectTransform = gameObject.transform.TryCast<RectTransform>();
             rectTransform.localPosition = Vector3.zero;
             rectTransform.localRotation = Quaternion.identity;
             rectTransform.localScale = Vector3.one;
@@ -25,22 +26,18 @@ namespace DynamicMaps.Utils
 
         public static RectTransform GetRectTransform(this GameObject gameObject)
         {
-            return gameObject.transform as RectTransform;
+            return gameObject.transform.TryCast<RectTransform>();
         }
 
         public static RectTransform GetRectTransform(this Component component)
         {
-            return component.gameObject.transform as RectTransform;
-        }
-
-        public static Tween TweenColor(this Image image, Color to, float duration)
-        {
-            return DOTween.To(() => image.color, c => image.color = c, to, duration);
+            return component.gameObject.transform.TryCast<RectTransform>();
         }
 
         public static GameObject CreateUIGameObject(GameObject parent, string name)
         {
-            var go = new GameObject(name, typeof(RectTransform));
+            var go = new GameObject(name);
+            go.AddComponent<RectTransform>();
             go.layer = parent.layer;
             go.transform.SetParent(parent.transform);
             go.ResetRectTransform();
@@ -56,7 +53,7 @@ namespace DynamicMaps.Utils
         {
             if (text == null)
             {
-                Plugin.Log.LogWarning($"TrySetTMPOutline: text cannot be null");
+                Plugin.Logger.LogWarning($"TrySetTMPOutline: text cannot be null");
                 return false;
             }
 
@@ -70,7 +67,7 @@ namespace DynamicMaps.Utils
             }
             catch
             {
-                // Plugin.Log.LogWarning($"Failed at setting outline. Will likely try again on next enable");
+                // Plugin.Logger.LogWarning($"Failed at setting outline. Will likely try again on next enable");
             }
 
             return false;

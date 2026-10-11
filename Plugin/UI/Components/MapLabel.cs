@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DynamicMaps.Data;
 using DynamicMaps.Utils;
@@ -8,11 +9,13 @@ namespace DynamicMaps.UI.Components
 {
     public class MapLabel : MonoBehaviour, ILayerBound
     {
+        public MapLabel(IntPtr ptr) : base(ptr) { }
+
         public string Text { get; protected set; }
         public string Category { get; protected set; }
 
         public TextMeshProUGUI Label { get; protected set; }
-        public RectTransform RectTransform => gameObject.transform as RectTransform;
+        public RectTransform RectTransform => gameObject.transform.TryCast<RectTransform>();
 
         private Vector3 _position;
         public Vector3 Position

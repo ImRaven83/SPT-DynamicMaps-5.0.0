@@ -96,7 +96,17 @@ See [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) for known current issues and [`FEATURE_
 
 ## Installation
 
-[Releases are here](https://github.com/mpstark/SPT-DynamicMaps/releases). Open zip file and drag `BepInEx` folder into root of your SPT-AKI install.
+[Releases are here](https://github.com/mpstark/SPT-DynamicMaps/releases). Open zip file and drag its contents (`BepInEx` and `SPT_Runtime` folders) into the root of your SPT install.
+
+Version 2.x targets SPT 5.0 (IL2CPP EFT client, BepInEx 6). Use a 1.x release for SPT 4.x.
+
+## Building (SPT 5.0)
+
+The client plugin builds against the BepInEx 6 IL2CPP interop assemblies, which BepInEx generates in `BepInEx/interop` the first time the game is launched.
+
+- **Plugin**: `dotnet build Plugin -c Release -p:TarkovDir="D:\SPT 5.0\"` (the trailing slash matters). `SPTushonka.Reflection.dll` and `SPTushonka.Common.dll` are read from `BepInEx/plugins/spt/`; override with `-p:TarkovPluginsSPTDir=...` if your install puts them elsewhere. Add `-p:SkipDeploy=true` to only compile, without copying into the game folder or building the release zip.
+- **Server**: the SPT 5.0 server libraries aren't on NuGet yet, so copy `SPTarkov.Common.dll`, `SPTarkov.DI.dll`, `SPTarkov.Server.Core.dll` and `SemanticVersioning.dll` into `References/Server/` at the repo root (git-ignored), or pass `-p:SptServerLibDir=...`.
+- **Map layers**: Unity.VectorGraphics can't be loaded into the IL2CPP game, so each map layer SVG is pre-rendered to a PNG next to it. After changing or adding an SVG, run `python tools/render_map_layers.py` (needs `pip install cairosvg pillow`) and commit the PNGs. Map definitions keep pointing at the `.svg`; only the PNGs are shipped.
 
 ## License
 

@@ -2,7 +2,7 @@ using System.Reflection;
 using Comfort.Common;
 using DynamicMaps.Config;
 using DynamicMaps.Utils;
-using SPT.Reflection.Patching;
+using SPTushonka.Reflection.Patching;
 using EFT.UI;
 using EFT.UI.Map;
 using HarmonyLib;
@@ -19,8 +19,14 @@ namespace DynamicMaps.Patches
         [PatchPostfix]
         public static void PatchPostfix(CommonUI __instance)
         {
-            var mapScreen = Traverse.Create(__instance.InventoryScreen).Field("_mapScreen").GetValue<MapScreen>();
-            
+            // il2cpp interop exposes private fields as properties
+            var mapScreen = __instance.InventoryScreen?._mapScreen;
+            if (mapScreen == null)
+            {
+                Plugin.Logger.LogError("Could not find MapScreen on CommonUI.InventoryScreen");
+                return;
+            }
+
             Plugin.Instance.TryAttachToMapScreen(mapScreen);
         }
     }

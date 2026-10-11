@@ -1,13 +1,16 @@
+using System;
 using DynamicMaps.Utils;
 using TMPro;
 using UnityEngine;
 
 namespace DynamicMaps.UI.Controls
 {
-    public abstract class AbstractTextControl : MonoBehaviour
+    public class AbstractTextControl : MonoBehaviour
     {
+        public AbstractTextControl(IntPtr ptr) : base(ptr) { }
+
         public TextMeshProUGUI Text { get; protected set; }
-        public RectTransform RectTransform => gameObject.transform as RectTransform;
+        public RectTransform RectTransform => gameObject.transform.TryCast<RectTransform>();
 
         private bool _hasSetOutline = false;
 

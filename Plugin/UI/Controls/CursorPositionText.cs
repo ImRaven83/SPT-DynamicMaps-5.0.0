@@ -1,9 +1,12 @@
+using System;
 using UnityEngine;
 
 namespace DynamicMaps.UI.Controls
 {
     public class CursorPositionText : AbstractTextControl
     {
+        public CursorPositionText(IntPtr ptr) : base(ptr) { }
+
         private RectTransform _mapViewTransform;
 
         public static CursorPositionText Create(GameObject parent, RectTransform mapViewTransform, float fontSize)

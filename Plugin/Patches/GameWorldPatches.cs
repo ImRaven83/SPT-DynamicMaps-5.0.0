@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SPT.Reflection.Patching;
+using SPTushonka.Reflection.Patching;
 using EFT;
 using EFT.Interactive;
 using EFT.InventoryLogic;
@@ -23,7 +23,7 @@ namespace DynamicMaps.Patches
         public static void PatchPostfix(GameWorld __instance)
         {
             // Credit to RaiRai for finding the hidden stash names
-            var caches = LocationScene.GetAllObjects<LootableContainer>()
+            var caches = UnityEngine.Object.FindObjectsOfType<LootableContainer>(true)
                 .Where( x => 
                     x.name.StartsWith("scontainer_wood_CAP")  || 
                     x.name.StartsWith("scontainer_Blue_Barrel_Base_Cap"))
@@ -33,6 +33,15 @@ namespace DynamicMaps.Patches
             foreach (var cache in caches)
             {
                 HiddenStashes.Add(cache);
+            }
+
+            try
+            {
+                BattleUIScreenShowPatch.TryAttach();
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError($"Caught error while attaching to battle UI: {e}");
             }
         }
     }
@@ -56,9 +65,9 @@ namespace DynamicMaps.Patches
             }
             catch(Exception e)
             {
-                Plugin.Log.LogError($"Caught error while doing end of raid calculations");
-                Plugin.Log.LogError($"{e.Message}");
-                Plugin.Log.LogError($"{e.StackTrace}");
+                Plugin.Logger.LogError($"Caught error while doing end of raid calculations");
+                Plugin.Logger.LogError($"{e.Message}");
+                Plugin.Logger.LogError($"{e.StackTrace}");
             }
         }
     }
@@ -85,8 +94,11 @@ namespace DynamicMaps.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(LootItem), nameof(LootItem.Init));
-            //return typeof(GameWorld).GetMethod("RegisterLoot").MakeGenericMethod(typeof(LootItem));
+            // Init is overloaded, the one that takes the item is the one that's called on spawn
+            return typeof(LootItem).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .First(m => m.Name == nameof(LootItem.Init)
+                         && m.GetParameters().FirstOrDefault()?.ParameterType == typeof(Item)
+                         && m.GetParameters().All(p => !p.ParameterType.IsArray));
         }
 
         [PatchPostfix]
@@ -108,20 +120,21 @@ namespace DynamicMaps.Patches
         }
 
         [PatchPrefix]
-        public static void PatchPrefix(Object loot)
+        public static void PatchPrefix(IKillable loot)
         {
             try
             {
-                if (loot is LootItem lootItem)
+                var lootItem = loot?.TryCast<LootItem>();
+                if (lootItem != null)
                 {
                     OnDestroyLoot?.Invoke(lootItem);
                 }
             }
             catch (Exception e)
             {
-                Plugin.Log.LogError($"Caught error while running DestroyLoot patch");
-                Plugin.Log.LogError($"{e.Message}");
-                Plugin.Log.LogError($"{e.StackTrace}");
+                Plugin.Logger.LogError($"Caught error while running DestroyLoot patch");
+                Plugin.Logger.LogError($"{e.Message}");
+                Plugin.Logger.LogError($"{e.StackTrace}");
             }
         }
     }

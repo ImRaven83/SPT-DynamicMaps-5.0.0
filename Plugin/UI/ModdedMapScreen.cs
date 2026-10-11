@@ -1,3 +1,4 @@
+using BepInEx.Unity.IL2CPP.Configuration;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,6 +24,8 @@ namespace DynamicMaps.UI
 {
     public class ModdedMapScreen : MonoBehaviour
     {
+        public ModdedMapScreen(IntPtr ptr) : base(ptr) { }
+
         #region Variables and Declarations
         private EventHandler _adjustMiniMapHandler;
         private UnityEngine.Events.UnityAction<Vector2> _scrollHandler;
@@ -53,12 +56,13 @@ namespace DynamicMaps.UI
 
         private RectTransform RectTransform => gameObject.GetRectTransform();
 
-        private RectTransform ParentTransform => gameObject.transform.parent as RectTransform;
+        private RectTransform ParentTransform => gameObject.transform.parent?.TryCast<RectTransform>();
 
         private bool _isShown = false;
 
         // map and transport mechanism
-        private MapScrollRect _scrollRect;
+        private ScrollRect _scrollRect;
+        private BeginDragNotifier _beginDragNotifier;
         private Mask _scrollMask;
         internal MapView MapView => _mapView;
         private MapView _mapView;
@@ -109,13 +113,14 @@ namespace DynamicMaps.UI
         private KeyboardShortcut _zoomMiniMapInShortcut;
         private KeyboardShortcut _zoomMiniMapOutShortcut;
 
-        public static DmServerConfig ServerConfig;
+        // defaults match the server's default config, used until (or if) the server config can't be loaded
+        public static DmServerConfig ServerConfig = new();
         public class DmServerConfig
         {
-            public bool AllowShowFriendlyPlayerMarkersInRaid;
-            public bool AllowShowEnemyPlayerMarkersInRaid;
-            public bool AllowShowBossMarkersInRaid;
-            public bool AllowShowScavMarkersInRaid;
+            public bool AllowShowFriendlyPlayerMarkersInRaid = true;
+            public bool AllowShowEnemyPlayerMarkersInRaid = true;
+            public bool AllowShowBossMarkersInRaid = true;
+            public bool AllowShowScavMarkersInRaid = true;
         }
 
 
@@ -152,14 +157,15 @@ namespace DynamicMaps.UI
             _scrollMask = scrollMaskGo.AddComponent<Mask>();
 
             // set up scroll rect
-            _scrollRect = scrollRectGo.AddComponent<MapScrollRect>();
+            _scrollRect = scrollRectGo.AddComponent<ScrollRect>();
+            _beginDragNotifier = scrollRectGo.AddComponent<BeginDragNotifier>();
             _scrollRect.scrollSensitivity = 0;  // don't scroll on mouse wheel
             _scrollRect.movementType = ScrollRect.MovementType.Unrestricted;
             _scrollRect.viewport = _scrollMask.GetRectTransform();
             _scrollRect.content = _mapView.RectTransform;
-            _scrollHandler = (_) => _mapView.ClampToMapBounds();
+            _scrollHandler = (Action<Vector2>)(_ => _mapView.ClampToMapBounds());
             _scrollRect.onValueChanged.AddListener(_scrollHandler);
-            _scrollRect.OnBeginDragCallback = () =>
+            _beginDragNotifier.OnBeginDragCallback = () =>
             {
                 if (_mapView == null) 
                     return;
@@ -198,7 +204,6 @@ namespace DynamicMaps.UI
             
             // load initial maps from path
             _mapSelectDropdown.LoadMapDefsFromPath(MapRelPath);
-            PrecacheMapLayerImages();
         }
 
         private void OnDestroy()
@@ -206,7 +211,11 @@ namespace DynamicMaps.UI
             if (_scrollRect != null)
             {
                 _scrollRect.onValueChanged.RemoveListener(_scrollHandler);
-                _scrollRect.OnBeginDragCallback = null;
+            }
+
+            if (_beginDragNotifier != null)
+            {
+                _beginDragNotifier.OnBeginDragCallback = null;
             }
             
             GameWorldOnDestroyPatch.OnRaidEnd -= OnRaidEnd;
@@ -349,7 +358,7 @@ namespace DynamicMaps.UI
         {
             if (!_initialized)
             {
-                //Plugin.Log.LogInfo("Map was not initialized, is resetting size and position");
+                //Plugin.Logger.LogInfo("Map was not initialized, is resetting size and position");
                 AdjustSizeAndPosition();
                 _initialized = true;
             }
@@ -362,12 +371,12 @@ namespace DynamicMaps.UI
 
             if (GameUtils.IsInRaid())
             {
-                // Plugin.Log.LogInfo("Showing map in raid");
+                // Plugin.Logger.LogInfo("Showing map in raid");
                 OnShowInRaid(playAnimation);
             }
             else
             {
-                // Plugin.Log.LogInfo("Showing map out-of-raid");
+                // Plugin.Logger.LogInfo("Showing map out-of-raid");
                 OnShowOutOfRaid();
             }
         }
@@ -379,12 +388,12 @@ namespace DynamicMaps.UI
             // close isn't called when hidden
             if (GameUtils.IsInRaid())
             {
-                // Plugin.Log.LogInfo("Hiding map in raid");
+                // Plugin.Logger.LogInfo("Hiding map in raid");
                 OnHideInRaid();
             }
             else
             {
-                // Plugin.Log.LogInfo("Hiding map out-of-raid");
+                // Plugin.Logger.LogInfo("Hiding map out-of-raid");
                 OnHideOutOfRaid();
             }
 
@@ -408,9 +417,9 @@ namespace DynamicMaps.UI
                 }
                 catch (Exception e)
                 {
-                    Plugin.Log.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnRaidEnd");
-                    Plugin.Log.LogError($"  Exception given was: {e.Message}");
-                    Plugin.Log.LogError($"  {e.StackTrace}");
+                    Plugin.Logger.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnRaidEnd");
+                    Plugin.Logger.LogError($"  Exception given was: {e.Message}");
+                    Plugin.Logger.LogError($"  {e.StackTrace}");
                 }
             }
 
@@ -607,9 +616,9 @@ namespace DynamicMaps.UI
                 }
                 catch (Exception e)
                 {
-                    Plugin.Log.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnShowInRaid");
-                    Plugin.Log.LogError($"  Exception given was: {e.Message}");
-                    Plugin.Log.LogError($"  {e.StackTrace}");
+                    Plugin.Logger.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnShowInRaid");
+                    Plugin.Logger.LogError($"  Exception given was: {e.Message}");
+                    Plugin.Logger.LogError($"  {e.StackTrace}");
                 }
             }
 
@@ -670,9 +679,9 @@ namespace DynamicMaps.UI
                 }
                 catch (Exception e)
                 {
-                    Plugin.Log.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnHideInRaid");
-                    Plugin.Log.LogError($"  Exception given was: {e.Message}");
-                    Plugin.Log.LogError($"  {e.StackTrace}");
+                    Plugin.Logger.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnHideInRaid");
+                    Plugin.Logger.LogError($"  Exception given was: {e.Message}");
+                    Plugin.Logger.LogError($"  {e.StackTrace}");
                 }
             }
         }
@@ -698,9 +707,9 @@ namespace DynamicMaps.UI
                 }
                 catch (Exception e)
                 {
-                    Plugin.Log.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnShowOutOfRaid");
-                    Plugin.Log.LogError($"  Exception given was: {e.Message}");
-                    Plugin.Log.LogError($"  {e.StackTrace}");
+                    Plugin.Logger.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnShowOutOfRaid");
+                    Plugin.Logger.LogError($"  Exception given was: {e.Message}");
+                    Plugin.Logger.LogError($"  {e.StackTrace}");
                 }
             }
         }
@@ -715,9 +724,9 @@ namespace DynamicMaps.UI
                 }
                 catch (Exception e)
                 {
-                    Plugin.Log.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnHideOutOfRaid");
-                    Plugin.Log.LogError($"  Exception given was: {e.Message}");
-                    Plugin.Log.LogError($"  {e.StackTrace}");
+                    Plugin.Logger.LogError($"Dynamic marker provider {dynamicProvider} threw exception in OnHideOutOfRaid");
+                    Plugin.Logger.LogError($"  Exception given was: {e.Message}");
+                    Plugin.Logger.LogError($"  {e.StackTrace}");
                 }
             }
         }
@@ -1042,7 +1051,7 @@ namespace DynamicMaps.UI
                 return;
             }
 
-            Plugin.Log.LogInfo("Trying to attach peek component to BattleUI");
+            Plugin.Logger.LogInfo("Trying to attach peek component to BattleUI");
 
             _peekComponent = MapPeekComponent.Create(battleUI.gameObject);
             _peekComponent.MapScreen = this;
@@ -1103,12 +1112,12 @@ namespace DynamicMaps.UI
                 return;
             }
 
-            Plugin.Log.LogInfo($"MapScreen: Loading map {mapDef.DisplayName}");
+            Plugin.Logger.LogInfo($"MapScreen: Loading map {mapDef.DisplayName}");
 
             // Reset size and position when loading map and in raid
             if (GameUtils.IsInRaid())
             {
-                // Plugin.Log.LogInfo($"MapScreen: Resetting Map Size");
+                // Plugin.Logger.LogInfo($"MapScreen: Resetting Map Size");
                 AdjustSizeAndPosition();
             }
             
@@ -1129,29 +1138,9 @@ namespace DynamicMaps.UI
                 }
                 catch (Exception e)
                 {
-                    Plugin.Log.LogError($"Dynamic marker provider {dynamicProvider} threw exception in ChangeMap");
-                    Plugin.Log.LogError($"  Exception given was: {e.Message}");
-                    Plugin.Log.LogError($"  {e.StackTrace}");
-                }
-            }
-        }
-
-        private void PrecacheMapLayerImages()
-        {
-            Singleton<CommonUI>.Instance.StartCoroutine(
-                PrecacheCoroutine(_mapSelectDropdown.GetMapDefs()));
-        }
-
-        private static IEnumerator PrecacheCoroutine(IEnumerable<MapDef> mapDefs)
-        {
-            foreach (var mapDef in mapDefs)
-            {
-                foreach (var layerDef in mapDef.Layers.Values)
-                {
-                    // just load sprite to cache it, one a frame
-                    Plugin.Log.LogInfo($"Precaching sprite: {layerDef.ImagePath}");
-                    SvgUtils.GetOrLoadCachedSprite(layerDef);
-                    yield return null;
+                    Plugin.Logger.LogError($"Dynamic marker provider {dynamicProvider} threw exception in ChangeMap");
+                    Plugin.Logger.LogError($"  Exception given was: {e.Message}");
+                    Plugin.Logger.LogError($"  {e.StackTrace}");
                 }
             }
         }

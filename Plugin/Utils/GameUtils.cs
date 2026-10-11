@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using SPT.Reflection.Utils;
+using SPTushonka.Reflection.Utils;
 using Comfort.Common;
 using DynamicMaps.Config;
 using EFT;
@@ -16,20 +16,8 @@ namespace DynamicMaps.Utils
 {
     public static class GameUtils
     {
-        // reflection        
-        private static FieldInfo _playerCorpseField = AccessTools.Field(typeof(Player), "Corpse");
-        private static FieldInfo _playerLastAggressorField = AccessTools.Field(typeof(Player), "LastAggressor");
-        
-        private static Type _profileInterface = typeof(IEftSession).GetInterfaces().First(i =>
-            {
-                var properties = i.GetProperties();
-                return properties.Length == 2 &&
-                       properties.Any(p => p.Name == "Profile");
-            });
-        private static PropertyInfo _sessionProfileProperty = AccessTools.Property(_profileInterface, "Profile");
-        public static IEftSession Session => ClientAppUtils.GetMainApp().GetClientBackEndSession();
-        public static Profile PlayerProfile => _sessionProfileProperty.GetValue(Session) as Profile;
-        //
+        public static IEftSession Session => ClientAppUtils.GetMainApp()?.GetClientBackEndSession();
+        public static Profile PlayerProfile => Session?.TryCast<IProfileSession>()?.Profile;
 
         private static HashSet<WildSpawnType> _trackedBosses = new HashSet<WildSpawnType>
         {
@@ -158,7 +146,7 @@ namespace DynamicMaps.Utils
 
         public static bool DidMainPlayerKill(this IPlayer player)
         {
-            var aggressor = _playerLastAggressorField.GetValue(player) as IPlayer;
+            var aggressor = player.TryCast<Player>()?.LastAggressor;
             if (aggressor == null)
             {
                 return false;
@@ -175,7 +163,7 @@ namespace DynamicMaps.Utils
 
         public static bool DidTeammateKill(this IPlayer player)
         {
-            var aggressor = _playerLastAggressorField.GetValue(player) as IPlayer;
+            var aggressor = player.TryCast<Player>()?.LastAggressor;
             if (aggressor == null || string.IsNullOrEmpty(aggressor.GroupId))
             {
                 return false;
@@ -198,7 +186,7 @@ namespace DynamicMaps.Utils
 
         public static bool HasCorpse(this Player player)
         {
-            return _playerCorpseField.GetValue(player) != null;
+            return player.Corpse != null;
         }
 
         public static bool IsHeadlessClient(this IPlayer player)
@@ -228,7 +216,7 @@ namespace DynamicMaps.Utils
 
             if (!MapLookUp.TryGetValue(currentLocation, out var id))
             {
-                Plugin.Log.LogWarning($"Could not find map id for location {currentLocation} is this a new location?");
+                Plugin.Logger.LogWarning($"Could not find map id for location {currentLocation} is this a new location?");
                 return true;
             }
                     

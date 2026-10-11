@@ -13,13 +13,15 @@ namespace DynamicMaps.UI.Components
 {
     public class MapView : MonoBehaviour
     {
+        public MapView(IntPtr ptr) : base(ptr) { }
+
         private static Vector2 _markerSize = new Vector2(30, 30);
         private static float _zoomMaxScaler = 10f;  // multiplier against zoomMin
         private static float _zoomMinScaler = 1.1f; // divider against ratio of a provided rect
 
         public event Action<int> OnLevelSelected;
 
-        public RectTransform RectTransform => gameObject.transform as RectTransform;
+        public RectTransform RectTransform => gameObject.transform.TryCast<RectTransform>();
         private RectTransform _maskTransform;
         public MapDef CurrentMapDef { get; private set; }
         public float CoordinateRotation { get; private set; }
@@ -202,6 +204,9 @@ namespace DynamicMaps.UI.Components
             CurrentMapDef = mapDef;
             CoordinateRotation = mapDef.CoordinateRotation;
 
+            // only keep the layer images of the map that's being shown around
+            MapLayerImageUtils.ReleaseAllExcept(mapDef.Layers.Values);
+
             // set width and height for top level
             var size = mapDef.Bounds.Max - mapDef.Bounds.Min;
             var rotatedSize = MathUtils.GetRotatedRectangle(size, CoordinateRotation);
@@ -220,6 +225,12 @@ namespace DynamicMaps.UI.Components
                 var layerName = pair.Key;
                 var layerDef = pair.Value;
                 var layer = MapLayer.Create(MapLayerContainer, layerName, layerDef, -CoordinateRotation);
+                if (layer == null)
+                {
+                    Plugin.Logger.LogError($"Could not create layer {layerName} for map {mapDef.DisplayName}");
+                    continue;
+                }
+
                 layer.IsOnDefaultLevel = layerDef.Level == mapDef.DefaultLevel;
 
                 _layers.Add(layer);

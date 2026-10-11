@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using Comfort.Common;
@@ -147,12 +147,13 @@ public class SecretMarkerProvider : IDynamicMarkerProvider
 
     private void UpdateSecretExtractStatus(ExfiltrationPoint point, EExfiltrationStatus status)
     {
-        if (!_secretMarkers.ContainsKey(point as SecretExfiltrationPoint))
+        var secretPoint = point?.TryCast<SecretExfiltrationPoint>();
+        if (secretPoint == null || !_secretMarkers.ContainsKey(secretPoint))
         {
             return;
         }
 
-        var marker = _secretMarkers[point as SecretExfiltrationPoint];
+        var marker = _secretMarkers[secretPoint];
         if (!_showExtractStatusInRaid)
         {
             marker.Color = Settings.SecretPointColor.Value;

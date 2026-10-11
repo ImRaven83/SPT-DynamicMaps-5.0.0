@@ -11,10 +11,12 @@ namespace DynamicMaps.UI.Controls
 {
     public class MapSelectDropdown : MonoBehaviour
     {
+        public MapSelectDropdown(IntPtr ptr) : base(ptr) { }
+
         private static readonly HashSet<string> AcceptableExtensions = new HashSet<string>{ "json", "jsonc" };
 
         public event Action<MapDef> OnMapSelected;
-        public RectTransform RectTransform => gameObject.transform as RectTransform;
+        public RectTransform RectTransform => gameObject.transform.TryCast<RectTransform>();
 
         private DropDownBox _dropdown;
         private readonly Dictionary<string, DateTime> _writeTimes = new Dictionary<string, DateTime>();
@@ -56,10 +58,16 @@ namespace DynamicMaps.UI.Controls
 
             _selectableMapDefs = mapDefs.ToList();
 
-            _dropdown.Show(_selectableMapDefs.Select(def => def.DisplayName));
+            var displayNames = new Il2CppSystem.Collections.Generic.List<string>();
+            foreach (var def in _selectableMapDefs)
+            {
+                displayNames.Add(def.DisplayName);
+            }
+
+            _dropdown.Show(displayNames.Cast<Il2CppSystem.Collections.Generic.IEnumerable<string>>(), null);
 
             // TODO: this references a BSG method of GInterface390
-            _dropdown.OnValueChanged.Subscribe(OnSelectDropdownMap);
+            _dropdown.OnValueChanged.Subscribe((Action<int>)OnSelectDropdownMap);
 
             gameObject.SetActive(_selectableMapDefs.Count > 1);
         }
@@ -82,11 +90,11 @@ namespace DynamicMaps.UI.Controls
 
                 _writeTimes[path] = writeTime;
 
-                Plugin.Log.LogInfo($"Trying to load MapDef from path: {path}");
+                Plugin.Logger.LogInfo($"Trying to load MapDef from path: {path}");
                 var mapDef = MapDef.LoadFromPath(path);
                 if (mapDef != null)
                 {
-                    Plugin.Log.LogInfo($"Loaded MapDef with display name: {mapDef.DisplayName}");
+                    Plugin.Logger.LogInfo($"Loaded MapDef with display name: {mapDef.DisplayName}");
                     _mapDefs[path] = mapDef;
                 }
             }
@@ -128,7 +136,7 @@ namespace DynamicMaps.UI.Controls
             if (FilteredMapDefs().FirstOrDefault() == null)
             {
                 _nameFilter = "";
-                Plugin.Log.LogWarning($"Cannot filter by {internalMapName}, no MapDefs match that map");
+                Plugin.Logger.LogWarning($"Cannot filter by {internalMapName}, no MapDefs match that map");
             }
 
             ChangeAvailableMapDefs(FilteredMapDefs());

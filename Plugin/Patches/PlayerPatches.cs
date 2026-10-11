@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using SPT.Reflection.Patching;
+using SPTushonka.Reflection.Patching;
 using DynamicMaps.Utils;
 using EFT;
 using EFT.Interactive;
@@ -49,14 +49,24 @@ namespace DynamicMaps.Patches
         [PatchPostfix]
         public static void PatchPostfix(Player.PlayerInventoryController __instance, Item item)
         {
+            HandleThrownItem(__instance.Player, item);
+        }
+
+        internal static void HandleThrownItem(Player player, Item item)
+        {
             // only look at main player's dropped items
-            var player = __instance.Player;
-            if (player == null || player != GameUtils.GetMainPlayer())
+            if (player == null || item == null || player != GameUtils.GetMainPlayer())
             {
                 return;
             }
 
+            // the inventory controller subclasses are patched too, ignore the item if an override called base
             var itemNetId = item.Id.GetHashCode();
+            if (ThrownItems.TryGetValue(itemNetId, out var existing) && existing == item)
+            {
+                return;
+            }
+
             ThrownItems[itemNetId] = item;
             OnThrowItem?.Invoke(itemNetId, item);
         }
@@ -74,6 +84,38 @@ namespace DynamicMaps.Patches
         internal static void OnRaidEnd()
         {
             ThrownItems.Clear();
+        }
+    }
+
+    // ThrowItem is overridden by the inventory controller subclasses, in il2cpp each override is a separate
+    // native method so they need to be patched individually
+    internal class SinglePlayerInventoryThrowItemPatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(Player.SinglePlayerInventoryController),
+                                      nameof(Player.SinglePlayerInventoryController.ThrowItem));
+        }
+
+        [PatchPostfix]
+        public static void PatchPostfix(Player.SinglePlayerInventoryController __instance, Item item)
+        {
+            PlayerInventoryThrowItemPatch.HandleThrownItem(__instance.Player, item);
+        }
+    }
+
+    internal class ClientPlayerInventoryThrowItemPatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(ClientPlayer.ClientPlayerInventoryController),
+                                      nameof(ClientPlayer.ClientPlayerInventoryController.ThrowItem));
+        }
+
+        [PatchPostfix]
+        public static void PatchPostfix(ClientPlayer.ClientPlayerInventoryController __instance, Item item)
+        {
+            PlayerInventoryThrowItemPatch.HandleThrownItem(__instance.Player, item);
         }
     }
 }

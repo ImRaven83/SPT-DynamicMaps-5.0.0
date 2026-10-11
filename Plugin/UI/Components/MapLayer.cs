@@ -1,7 +1,8 @@
 using DynamicMaps.Data;
 using DynamicMaps.Utils;
-using Unity.VectorGraphics;
+using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DynamicMaps.UI.Components
 {
@@ -21,12 +22,15 @@ namespace DynamicMaps.UI.Components
 
     public class MapLayer : MonoBehaviour
     {
+        public MapLayer(IntPtr ptr) : base(ptr) { }
+
+
         private static float _fadeMultiplierPerLayer = 0.5f;
         private static float _defaultLevelFallbackAlpha = 0.1f;
 
         private string Name { get; set; }
-        private SVGImage Image { get; set; }
-        public RectTransform RectTransform => gameObject.transform as RectTransform;
+        private Image Image { get; set; }
+        public RectTransform RectTransform => gameObject.transform.TryCast<RectTransform>();
 
         public int Level => _def.Level;
         public LayerStatus Status { get; private set; }
@@ -36,7 +40,9 @@ namespace DynamicMaps.UI.Components
 
         public static MapLayer Create(GameObject parent, string name, MapLayerDef def, float degreesRotation)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer));
+            var go = new GameObject(name);
+            go.AddComponent<RectTransform>();
+            go.AddComponent<CanvasRenderer>();
             go.layer = parent.layer;
             go.transform.SetParent(parent.transform);
             go.ResetRectTransform();
@@ -60,13 +66,13 @@ namespace DynamicMaps.UI.Components
             layer._def = def;
 
             // load image
-            var svgSprite = SvgUtils.GetOrLoadCachedSprite(def);
-            if (svgSprite == null) return null;
-            
-            layer.Image = go.AddComponent<SVGImage>();
+            var sprite = MapLayerImageUtils.GetOrLoadCachedSprite(def);
+            if (sprite == null) return null;
+
+            layer.Image = go.AddComponent<Image>();
             layer.Image.raycastTarget = false;
             layer.Image.preserveAspect = false;
-            layer.Image.sprite = svgSprite;
+            layer.Image.sprite = sprite;
 
             return layer;
         }

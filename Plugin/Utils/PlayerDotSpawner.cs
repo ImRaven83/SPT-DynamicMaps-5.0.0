@@ -1,3 +1,4 @@
+using System;
 using DynamicMaps.Data;
 using DynamicMaps.UI.Components;
 using DynamicMaps.Utils;
@@ -8,6 +9,8 @@ namespace DynamicMaps
 {
     public class PlayerDotSpawner : MonoBehaviour
     {
+        public PlayerDotSpawner(IntPtr ptr) : base(ptr) { }
+
         private static float _spawnTime = 0.25f;
         private float _timeAccumulator = 0f;
 

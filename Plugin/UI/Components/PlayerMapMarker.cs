@@ -1,3 +1,4 @@
+using System;
 using DynamicMaps.Utils;
 using EFT;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace DynamicMaps.UI.Components
             return marker;
         }
 
-        public PlayerMapMarker()
+        public PlayerMapMarker(IntPtr ptr) : base(ptr)
         {
             ImageAlphaLayerStatus[LayerStatus.Hidden] = 0.25f;
             ImageAlphaLayerStatus[LayerStatus.Underneath] = 0.25f;

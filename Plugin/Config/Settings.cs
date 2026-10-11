@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using BepInEx.Unity.IL2CPP.Configuration;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using DynamicMaps.ExternalModSupport;
@@ -139,8 +140,36 @@ namespace DynamicMaps.Config
         
         // public static ConfigEntry<KeyboardShortcut> KeyboardShortcut;
 
+        /// <summary>
+        /// BepInEx 6 IL2CPP does not ship a TOML converter for UnityEngine.Color, register one that
+        /// reads and writes the same "RRGGBBAA" format BepInEx 5 used so existing configs keep working
+        /// </summary>
+        private static void RegisterColorConverter()
+        {
+            if (TomlTypeConverter.CanConvert(typeof(Color)))
+            {
+                return;
+            }
+
+            TomlTypeConverter.AddConverter(typeof(Color), new TypeConverter
+            {
+                ConvertToString = (obj, type) => ColorUtility.ToHtmlStringRGBA((Color)obj),
+                ConvertToObject = (str, type) =>
+                {
+                    if (!ColorUtility.TryParseHtmlString("#" + str.Trim('"', '#', ' '), out var color))
+                    {
+                        throw new FormatException($"Invalid color string, expected hex format with RRGGBBAA: {str}");
+                    }
+
+                    return color;
+                }
+            });
+        }
+
         public static void Init(ConfigFile config)
         {
+            RegisterColorConverter();
+
             #region General
 
             ConfigEntries.Add(ReplaceMapScreen = config.Bind(

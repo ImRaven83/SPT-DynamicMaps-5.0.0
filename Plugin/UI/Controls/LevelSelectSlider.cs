@@ -12,11 +12,13 @@ namespace DynamicMaps.UI.Controls
 {
     public class LevelSelectSlider : MonoBehaviour
     {
+        public LevelSelectSlider(IntPtr ptr) : base(ptr) { }
+
         private static readonly float LevelTextSize = 15f;
         private static readonly Vector2 LevelTextOffset = new Vector2(10f, 0f);
 
         public event Action<int> OnLevelSelectedBySlider;
-        public RectTransform RectTransform => gameObject.transform as RectTransform;
+        public RectTransform RectTransform => gameObject.transform.TryCast<RectTransform>();
 
         private int _selectedLevel = int.MinValue;
         public int SelectedLevel
@@ -87,16 +89,16 @@ namespace DynamicMaps.UI.Controls
             var actualScrollbarGO = gameObject.transform.Find("Scrollbar").gameObject;
             _scrollbar = actualScrollbarGO.GetComponent<Scrollbar>();
             _scrollbar.direction = Scrollbar.Direction.BottomToTop;
-            _scrollbar.onValueChanged.AddListener(OnScrollbarChanged);
+            _scrollbar.onValueChanged.AddListener((Action<float>)OnScrollbarChanged);
             _scrollbar.onValueChanged.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
 
             // setup the +/- buttons
             var plusButton = gameObject.transform.Find("Plus").gameObject.GetComponent<Button>();
-            plusButton.onClick.AddListener(() => ChangeLevelBy(1));
+            plusButton.onClick.AddListener((Action)(() => ChangeLevelBy(1)));
             plusButton.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
 
             var minusButton = gameObject.transform.Find("Minus").gameObject.GetComponent<Button>();
-            minusButton.onClick.AddListener(() => ChangeLevelBy(-1));
+            minusButton.onClick.AddListener((Action)(() => ChangeLevelBy(-1)));
             minusButton.onClick.SetPersistentListenerState(0, UnityEngine.Events.UnityEventCallState.Off);
 
             // initially hide until map loaded

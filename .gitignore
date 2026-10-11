@@ -456,3 +456,6 @@ $RECYCLE.BIN/
 
 # auto generated files specific to this project
 Version.cs
+
+# Local SPT 5.0 server libraries (not on NuGet yet), see Plugin/README.md
+References/

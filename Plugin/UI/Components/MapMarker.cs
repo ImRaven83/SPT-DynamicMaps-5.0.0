@@ -9,8 +9,11 @@ using UnityEngine.UI;
 
 namespace DynamicMaps.UI.Components
 {
-    public class MapMarker : MonoBehaviour, ILayerBound, IPointerEnterHandler, IPointerExitHandler
+    // IPointerEnterHandler and IPointerExitHandler are implemented through il2cpp injection, see Il2CppTypes
+    public class MapMarker : MonoBehaviour, ILayerBound
     {
+        public MapMarker(IntPtr ptr) : base(ptr) { }
+
         // TODO: this seems... not great?
         public static Dictionary<string, Dictionary<LayerStatus, float>> CategoryImageAlphaLayerStatus { get; protected set; }
             = new Dictionary<string, Dictionary<LayerStatus, float>>
@@ -87,7 +90,7 @@ namespace DynamicMaps.UI.Components
 
         public Image Image { get; protected set; }
         public TextMeshProUGUI Label { get; protected set; }
-        public RectTransform RectTransform => gameObject.transform as RectTransform;
+        public RectTransform RectTransform => gameObject.transform.TryCast<RectTransform>();
 
         public string AssociatedItemId { get; protected set; } = "";
         public bool IsDynamic { get; protected set; } = false;

@@ -154,12 +154,12 @@ namespace DynamicMaps.DynamicMarkers
 
         private void OnUnregisterPlayer(IPlayer iPlayer)
         {
-            if (iPlayer is not Player)
+            var player = iPlayer?.TryCast<Player>();
+            if (player == null)
             {
                 return;
             }
 
-            var player = iPlayer as Player;
             if (player.HasCorpse())
             {
                 TryAddMarker(player);

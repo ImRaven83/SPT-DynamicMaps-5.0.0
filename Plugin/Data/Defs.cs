@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using DynamicMaps.Utils;
 using UnityEngine;
 
 namespace DynamicMaps.Data
@@ -46,6 +47,7 @@ namespace DynamicMaps.Data
         [JsonRequired]
         public Vector3 Position { get; set; }
 
+        [JsonIgnore]
         public Sprite Sprite { get; set; }
         public bool ShowInRaid { get; set; } = true;
         public string Category { get; set; } = "None";
@@ -92,13 +94,13 @@ namespace DynamicMaps.Data
         {
             try
             {
-                return JsonConvert.DeserializeObject<MapDef>(File.ReadAllText(absolutePath));
+                return JsonUtils.Deserialize<MapDef>(File.ReadAllText(absolutePath));
             }
             catch (Exception e)
             {
-                Plugin.Log.LogError($"Loading MapMappingDef failed from json at path: {absolutePath}");
-                Plugin.Log.LogError($"Exception given was: {e.Message}");
-                Plugin.Log.LogError($"{e.StackTrace}");
+                Plugin.Logger.LogError($"Loading MapMappingDef failed from json at path: {absolutePath}");
+                Plugin.Logger.LogError($"Exception given was: {e.Message}");
+                Plugin.Logger.LogError($"{e.StackTrace}");
             }
 
             return null;

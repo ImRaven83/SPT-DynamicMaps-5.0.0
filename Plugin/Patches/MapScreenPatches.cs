@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using SPT.Reflection.Patching;
+using SPTushonka.Reflection.Patching;
 using DynamicMaps.Config;
 using DynamicMaps.Utils;
 using EFT.UI.Map;
@@ -33,9 +33,9 @@ namespace DynamicMaps.Patches
             }
             catch(Exception e)
             {
-                Plugin.Log.LogError($"Caught error while trying to show map");
-                Plugin.Log.LogError($"{e.Message}");
-                Plugin.Log.LogError($"{e.StackTrace}");
+                Plugin.Logger.LogError($"Caught error while trying to show map");
+                Plugin.Logger.LogError($"{e.Message}");
+                Plugin.Logger.LogError($"{e.StackTrace}");
 
                 return true;
             }
@@ -66,9 +66,9 @@ namespace DynamicMaps.Patches
             }
             catch(Exception e)
             {
-                Plugin.Log.LogError($"Caught error while trying to close map");
-                Plugin.Log.LogError($"{e.Message}");
-                Plugin.Log.LogError($"{e.StackTrace}");
+                Plugin.Logger.LogError($"Caught error while trying to close map");
+                Plugin.Logger.LogError($"{e.Message}");
+                Plugin.Logger.LogError($"{e.StackTrace}");
 
                 return true;
             }

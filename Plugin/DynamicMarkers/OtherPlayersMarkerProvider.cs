@@ -184,7 +184,7 @@ namespace DynamicMaps.DynamicMarkers
 
         private void OnUnregisterPlayer(IPlayer iPlayer)
         {
-            var player = iPlayer as Player;
+            var player = iPlayer?.TryCast<Player>();
             if (player is null)
             {
                 return;
@@ -220,7 +220,7 @@ namespace DynamicMaps.DynamicMarkers
         
         private void TryAddMarker(IPlayer iPlayer)
         {
-            var player = iPlayer as Player;
+            var player = iPlayer?.TryCast<Player>();
             if (player is null || player.IsHeadlessClient())
             {
                 return;

@@ -6,7 +6,6 @@ using DynamicMaps.Patches;
 using EFT;
 using EFT.Interactive;
 using EFT.Interactive.SecretExfiltrations;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace DynamicMaps.Utils
@@ -77,7 +76,7 @@ namespace DynamicMaps.Utils
                 dump.Add(dumped);
             }
 
-            foreach (var transit in LocationScene.GetAllObjects<TransitPoint>(true))
+            foreach (var transit in UnityEngine.Object.FindObjectsOfType<TransitPoint>(true))
             {
                 var dumped = new MapMarkerDef
                 {
@@ -111,10 +110,10 @@ namespace DynamicMaps.Utils
             }
 
             var mapName = GameUtils.GetCurrentMapInternalName();
-            var dumpString = JsonConvert.SerializeObject(dump, Formatting.Indented);
+            var dumpString = JsonUtils.Serialize(dump);
             File.WriteAllText(Path.Combine(Plugin.Path, $"{mapName}-extracts.json"), dumpString);
 
-            Plugin.Log.LogInfo("Dumped extracts");
+            Plugin.Logger.LogInfo("Dumped extracts");
         }
 
         public static void DumpSwitches()
@@ -141,10 +140,10 @@ namespace DynamicMaps.Utils
             }
 
             var mapName = GameUtils.GetCurrentMapInternalName();
-            var dumpString = JsonConvert.SerializeObject(dump, Formatting.Indented);
+            var dumpString = JsonUtils.Serialize(dump);
             File.WriteAllText(Path.Combine(Plugin.Path, $"{mapName}-switches.json"), dumpString);
 
-            Plugin.Log.LogInfo("Dumped switches");
+            Plugin.Logger.LogInfo("Dumped switches");
         }
 
         public static void DumpLocks()
@@ -174,10 +173,10 @@ namespace DynamicMaps.Utils
             }
 
             var mapName = GameUtils.GetCurrentMapInternalName();
-            var dumpString = JsonConvert.SerializeObject(dump, Formatting.Indented);
+            var dumpString = JsonUtils.Serialize(dump);
             File.WriteAllText(Path.Combine(Plugin.Path, $"{mapName}-locked.json"), dumpString);
 
-            Plugin.Log.LogInfo("Dumped locks");
+            Plugin.Logger.LogInfo("Dumped locks");
         }
     }
 }

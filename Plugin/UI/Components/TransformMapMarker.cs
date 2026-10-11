@@ -1,3 +1,4 @@
+using System;
 using Comfort.Common;
 using DynamicMaps.Utils;
 using UnityEngine;
@@ -27,7 +28,7 @@ namespace DynamicMaps.UI.Components
             return marker;
         }
 
-        public TransformMapMarker()
+        public TransformMapMarker(IntPtr ptr) : base(ptr)
         {
             ImageAlphaLayerStatus[LayerStatus.Hidden] = 0.25f;
             ImageAlphaLayerStatus[LayerStatus.Underneath] = 0.25f;
@@ -51,7 +52,7 @@ namespace DynamicMaps.UI.Components
             {
                 if (!_warnedAttachedIsDisabled)
                 {
-                    Plugin.Log.LogWarning($"FollowingTransform for TransformMapMarker has been disabled without removing the map marker");
+                    Plugin.Logger.LogWarning($"FollowingTransform for TransformMapMarker has been disabled without removing the map marker");
                     Color = Color.red;
                     _warnedAttachedIsDisabled = true;
                 }

@@ -1,3 +1,4 @@
+using System;
 using DynamicMaps.Utils;
 using EFT;
 using UnityEngine;
@@ -6,6 +7,8 @@ namespace DynamicMaps.UI.Controls
 {
     public class PlayerPositionText : AbstractTextControl
     {
+        public PlayerPositionText(IntPtr ptr) : base(ptr) { }
+
         public static PlayerPositionText Create(GameObject parent, float fontSize)
         {
             var text = Create<PlayerPositionText>(parent, "PlayerPositionText", fontSize);

@@ -84,7 +84,7 @@ namespace DynamicMaps.DynamicMarkers
             {
                 var itemNetId = pair.Key;
                 var item = pair.Value;
-                var itemType = ItemViewFactory.GetItemType(item.GetType());
+                var itemType = ItemViewFactory.GetItemType(item.GetIl2CppType());
 
                 // check if item is already in markers or is not a backpack and doesn't not exist as loot item in the world
                 if (_backpackMarkers.ContainsKey(itemNetId)
@@ -106,7 +106,7 @@ namespace DynamicMaps.DynamicMarkers
             }
 
             var itemNetId = lootItem.GetNetId();
-            var itemType = ItemViewFactory.GetItemType(lootItem.Item.GetType());
+            var itemType = ItemViewFactory.GetItemType(lootItem.Item.GetIl2CppType());
 
             if (_backpackMarkers.ContainsKey(itemNetId)
                 || itemType != EItemType.Backpack

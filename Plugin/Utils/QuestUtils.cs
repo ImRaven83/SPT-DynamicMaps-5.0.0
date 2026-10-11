@@ -7,7 +7,6 @@ using DynamicMaps.Data;
 using EFT;
 using EFT.Interactive;
 using EFT.Quests;
-using HarmonyLib;
 using UnityEngine;
 
 namespace DynamicMaps.Utils
@@ -17,21 +16,6 @@ namespace DynamicMaps.Utils
     // under MIT license (https://github.com/dvize/GTFO/blob/master/LICENSE.txt)
     public static class QuestUtils
     {
-        // reflection
-        /*private static FieldInfo _playerQuestControllerField = AccessTools.Field(typeof(Player), "_questController");
-        private static PropertyInfo _questControllerQuestsProperty = AccessTools.Property(typeof(AbstractQuestControllerClass), "Quests");
-        private static FieldInfo _questsListField = AccessTools.Field(_questControllerQuestsProperty.PropertyType, "List_1");
-
-        private static MethodInfo _questsGetConditionalMethod = AccessTools.Method(_questControllerQuestsProperty.PropertyType, "GetConditional", new Type[] { typeof(string) });
-
-        private static Type _questType = _questControllerQuestsProperty.PropertyType.BaseType.GetGenericArguments()[0];
-        private static MethodInfo _questIsConditionDone = AccessTools.Method(_questType, "IsConditionDone");
-
-        private static FieldInfo _conditionCounterTemplateField = AccessTools.Field(typeof(ConditionCounterCreator), "TemplateConditions");
-        private static FieldInfo _templateConditionsConditionsField = AccessTools.Field(_conditionCounterTemplateField.FieldType, "Conditions");
-        private static FieldInfo _conditionListField = AccessTools.Field(_templateConditionsConditionsField.FieldType, "List_0");*/
-        //
-
         // TODO: move to config
         private const string _questCategory = "Quest";
         private const string _questImagePath = "Markers/quest.png";
@@ -53,11 +37,14 @@ namespace DynamicMaps.Utils
 
             if (QuestItems == null)
             {
-                QuestItems = Traverse.Create(gameWorld)
-                    .Field("LootItems")
-                    .Field("_iteration")
-                    .GetValue<List<LootItem>>()
-                    .Where(i => i.Item.QuestItem).ToList();
+                QuestItems = [];
+                foreach (var lootItem in gameWorld.LootItems._iteration)
+                {
+                    if (lootItem?.Item != null && lootItem.Item.QuestItem)
+                    {
+                        QuestItems.Add(lootItem);
+                    }
+                }
             }
         }
 
@@ -80,7 +67,7 @@ namespace DynamicMaps.Utils
         {
             if (TriggersWithIds == null || QuestItems == null)
             {
-                Plugin.Log.LogWarning($"TriggersWithIds null: {TriggersWithIds == null} or QuestItems null: {QuestItems == null}");
+                Plugin.Logger.LogWarning($"TriggersWithIds null: {TriggersWithIds == null} or QuestItems null: {QuestItems == null}");
                 return null;
             }
 
@@ -95,7 +82,7 @@ namespace DynamicMaps.Utils
             return markers;
         }
 
-        internal static IEnumerable<MapMarkerDef> GetMarkerDefsForQuest(Player player, QuestDataClass quest)
+        internal static IEnumerable<MapMarkerDef> GetMarkerDefsForQuest(Player player, Quest quest)
         {
             var markers = new List<MapMarkerDef>();
 
@@ -137,75 +124,60 @@ namespace DynamicMaps.Utils
         private static IEnumerable<Vector3> GetPositionsForCondition(Condition condition, string questName,
                                                                     string conditionDescription)
         {
-            switch (condition)
+            // TryCast checks the il2cpp class hierarchy, so it works however the condition wrapper was created
+            IEnumerable<string> zoneIds = null;
+            if (condition.TryCast<ConditionZone>() is { } zoneCondition)
             {
-                case ConditionZone zoneCondition:
+                zoneIds = zoneCondition.zoneIds;
+            }
+            else if (condition.TryCast<ConditionLaunchFlare>() is { } flareCondition)
+            {
+                zoneIds = [flareCondition.zoneID];
+            }
+            else if (condition.TryCast<ConditionVisitPlace>() is { } place)
+            {
+                zoneIds = [place.target];
+            }
+            else if (condition.TryCast<ConditionInZone>() is { } zone)
+            {
+                zoneIds = zone.zoneIds;
+            }
+            else if (condition.TryCast<ConditionFindItem>() is { } findItemCondition)
+            {
+                foreach (var position in GetPositionsForQuestItems(findItemCondition.target, questName, conditionDescription))
                 {
-                    foreach (var position in GetPositionsForZoneId(zoneCondition.zoneId, questName, conditionDescription))
-                    {
-                        yield return position;
-                    }
-                    break;
+                    yield return position;
                 }
-                case ConditionLaunchFlare flareCondition:
-                {
-                    foreach (var position in GetPositionsForZoneId(flareCondition.zoneID, questName, conditionDescription))
-                    {
-                        yield return position;
-                    }
-                    break;
-                }
-                case ConditionVisitPlace place:
-                {
-                    foreach (var position in GetPositionsForZoneId(place.target, questName, conditionDescription))
-                    {
-                        yield return position;
-                    }
-                    break;
-                }
-                case ConditionInZone zone:
-                {
-                    foreach (var zoneId in zone.zoneIds)
-                    {
-                        foreach (var position in GetPositionsForZoneId(zoneId, questName, conditionDescription))
-                        {
-                            yield return position;
-                        }
-                    }
-                    break;
-                }
-                case ConditionFindItem findItemCondition:
-                {
-                    foreach (var position in GetPositionsForQuestItems(findItemCondition.target, questName, conditionDescription))
-                    {
-                        yield return position;
-                    }
-                    break;
-                }
-                case ConditionExitName exitCondition:
-                {
-                    var exfils = Singleton<GameWorld>.Instance.ExfiltrationController.ExfiltrationPoints;
-                    var specifiedExit = exfils.FirstOrDefault(e => e.Settings.Name == exitCondition.exitName);
+            }
+            else if (condition.TryCast<ConditionExitName>() is { } exitCondition)
+            {
+                var exfils = Singleton<GameWorld>.Instance.ExfiltrationController.ExfiltrationPoints;
+                var specifiedExit = exfils.FirstOrDefault(e => e.Settings.Name == exitCondition.exitName);
 
-                    if (specifiedExit != null)
-                    {
-                        yield return MathUtils.ConvertToMapPosition(specifiedExit.transform);
-                    }
+                if (specifiedExit != null)
+                {
+                    yield return MathUtils.ConvertToMapPosition(specifiedExit.transform);
+                }
+            }
+            else if (condition.TryCast<ConditionCounterCreator>() is { } conditionCreator)
+            {
+                // this will recurse back into this method
+                foreach (var position in GetPositionsForConditionCreator(conditionCreator, questName, conditionDescription))
+                {
+                    yield return position;
+                }
+            }
 
-                    break;
-                }
-                case ConditionCounterCreator conditionCreator:
+            if (zoneIds == null)
+            {
+                yield break;
+            }
+
+            foreach (var zoneId in zoneIds)
+            {
+                foreach (var position in GetPositionsForZoneId(zoneId, questName, conditionDescription))
                 {
-                    // this will recurse back into this method
-                    foreach (var position in GetPositionsForConditionCreator(conditionCreator, questName, conditionDescription))
-                    {
-                        yield return position;
-                    }
-                    break;
-                }
-                default:
-                {
-                    break;
+                    yield return position;
                 }
             }
         }
@@ -213,8 +185,12 @@ namespace DynamicMaps.Utils
         private static IEnumerable<Vector3> GetPositionsForConditionCreator(ConditionCounterCreator conditionCreator,
                                                                             string questName, string conditionDescription)
         {
-            var counter = conditionCreator._templateConditions;
-            foreach (var condition in counter.Conditions)
+            if (conditionCreator.Conditions == null)
+            {
+                yield break;
+            }
+
+            foreach (var condition in conditionCreator.Conditions.ToManaged())
             {
                 foreach (var position in GetPositionsForCondition(condition, questName, conditionDescription))
                 {
@@ -226,8 +202,12 @@ namespace DynamicMaps.Utils
         private static IEnumerable<Vector3> GetPositionsForZoneId(string zoneId, string questName,
                                                                   string conditionDescription)
         {
-            var zones = TriggersWithIds?.GetZoneTriggers(zoneId);
-            foreach (var zone in zones)
+            if (TriggersWithIds == null)
+            {
+                yield break;
+            }
+
+            foreach (var zone in TriggersWithIds.GetZoneTriggers(zoneId))
             {
                 yield return MathUtils.ConvertToMapPosition(zone.transform.position);
             }
@@ -238,35 +218,39 @@ namespace DynamicMaps.Utils
         {
             foreach (var questItemId in questItemIds)
             {
-                var questItems = QuestItems?.Where(i => i.TemplateId == questItemId);
-                foreach (var item in questItems)
+                if (QuestItems == null)
+                {
+                    yield break;
+                }
+
+                foreach (var item in QuestItems.Where(i => i.TemplateId == questItemId))
                 {
                     yield return MathUtils.ConvertToMapPosition(item.transform.position);
                 }
             }
         }
 
-        private static IEnumerable<Condition> GetIncompleteQuestConditions(Player player, QuestDataClass quest)
+        private static IEnumerable<Condition> GetIncompleteQuestConditions(Player player, Quest quest)
         {
             // TODO: Template.Conditions is a GClass reference
             if (quest?.Template?.Conditions == null)
             {
-                Plugin.Log.LogError($"GetIncompleteQuestConditions: quest.Template.Conditions is null, skipping quest");
+                Plugin.Logger.LogError($"GetIncompleteQuestConditions: quest.Template.Conditions is null, skipping quest");
                 yield break;
             }
 
             // TODO: conditions is a GClass reference
             if (!quest.Template.Conditions.TryGetValue(EQuestStatus.AvailableForFinish, out var conditions) || conditions == null)
             {
-                Plugin.Log.LogError($"Quest {quest.Template.NameLocaleKey.BSGLocalized()} doesn't have conditions marked AvailableForFinish, skipping it");
+                Plugin.Logger.LogError($"Quest {quest.Template.NameLocaleKey.BSGLocalized()} doesn't have conditions marked AvailableForFinish, skipping it");
                 yield break;
             }
 
-            foreach (var condition in conditions)
+            foreach (var condition in conditions.ToManaged())
             {
                 if (condition == null)
                 {
-                    Plugin.Log.LogWarning($"Quest {quest.Template.NameLocaleKey.BSGLocalized()} has null condition, skipping it");
+                    Plugin.Logger.LogWarning($"Quest {quest.Template.NameLocaleKey.BSGLocalized()} has null condition, skipping it");
                     continue;
                 }
 
@@ -280,26 +264,26 @@ namespace DynamicMaps.Utils
             }
         }
 
-        private static IEnumerable<QuestDataClass> GetIncompleteQuests(Player player)
+        private static IEnumerable<Quest> GetIncompleteQuests(Player player)
         {
             var questController = player.QuestController;
             if (questController == null)
             {
-                Plugin.Log.LogError($"Not able to get quests for player: {player.Id}, questController is null");
+                Plugin.Logger.LogError($"Not able to get quests for player: {player.Id}, questController is null");
                 yield break;
             }
 
-            var quests = questController.Quests;
+            var quests = questController.ConditionalBook;
             if (quests == null)
             {
-                Plugin.Log.LogError($"Not able to get quests for player: {player.Id}, quests is null");
+                Plugin.Logger.LogError($"Not able to get quests for player: {player.Id}, quests is null");
                 yield break;
             }
 
-            var questsList = quests.list_1;
+            var questsList = quests.List;
             if (questsList == null)
             {
-                Plugin.Log.LogError($"Not able to get quests for player: {player.Id}, questsList is null");
+                Plugin.Logger.LogError($"Not able to get quests for player: {player.Id}, questsList is null");
                 yield break;
             }
 
@@ -310,7 +294,7 @@ namespace DynamicMaps.Utils
                     continue;
                 }
 
-                if (quest.Status != EQuestStatus.Started)
+                if (quest.QuestStatus != EQuestStatus.Started)
                 {
                     continue;
                 }
@@ -319,11 +303,11 @@ namespace DynamicMaps.Utils
             }
         }
 
-        private static bool IsConditionCompleted(Player player, QuestDataClass questData, Condition condition)
+        private static bool IsConditionCompleted(Player player, Quest questData, Condition condition)
         {
             // CompletedConditions is inaccurate (it doesn't reset when some quests do on death)
             // and also does not contain optional objectives, need to recheck if something is in there
-            if (condition.IsNecessary && !questData.CompletedConditions.Contains(condition.id))
+            if (condition.IsNecessary && !questData.CompletedConditions.Contains(condition))
             {
                 return false;
             }
@@ -334,7 +318,7 @@ namespace DynamicMaps.Utils
                 return false;
             }
 
-            var quests = questController.Quests;
+            var quests = questController.ConditionalBook;
             if (quests == null)
             {
                 return false;

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Comfort.Common;
 using DynamicMaps.Config;
@@ -24,7 +24,8 @@ namespace DynamicMaps.DynamicMarkers
             
             foreach (var item in lootList)
             {
-                if (item is not LootItem loot) continue;
+                var loot = item?.TryCast<LootItem>();
+                if (loot == null) continue;
                 
                 if (GameUtils.GetWishListItems().Contains(new MongoID(loot.TemplateId)))
                 {
@@ -80,7 +81,7 @@ namespace DynamicMaps.DynamicMarkers
             if (Settings.ShowWishListItemsIntelLevel.Value > GameUtils.GetIntelLevel()) return;
             
             var staticIcons = EFTHardSettings.Instance.StaticIcons;
-            var itemType = ItemViewFactory.GetItemType(item.Item.GetType());
+            var itemType = ItemViewFactory.GetItemType(item.Item.GetIl2CppType());
             var itemSprite = staticIcons.ItemTypeSprites.GetValueOrDefault(itemType);
 
             var transform = item.transform;
