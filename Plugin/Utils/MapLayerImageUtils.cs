@@ -39,7 +39,8 @@ public static class MapLayerImageUtils
 
         // mipmaps keep the map readable when zoomed out (e.g. on the mini-map)
         var texture = new Texture2D(2, 2, TextureFormat.RGBA32, true);
-        if (!texture.LoadImage(File.ReadAllBytes(absolutePath), true))
+        // keep it readable until it's compressed, Apply below drops the CPU copy
+        if (!texture.LoadImage(File.ReadAllBytes(absolutePath), false))
         {
             Plugin.Logger.LogError($"Failed to decode map layer image: {absolutePath}");
             return null;
@@ -53,11 +54,19 @@ public static class MapLayerImageUtils
 
         // block compress (layers are rendered with dimensions divisible by 4) and drop the CPU copy,
         // a 4k layer goes from ~85MB to ~21MB of VRAM with mips
-        if (texture.width % 4 == 0 && texture.height % 4 == 0)
+        try
         {
-            texture.Compress(false);
+            if (texture.width % 4 == 0 && texture.height % 4 == 0)
+            {
+                texture.Compress(false);
+            }
+            texture.Apply(false, true);
         }
-        texture.Apply(false, true);
+        catch (System.Exception e)
+        {
+            // an uncompressed layer still works, it just uses more memory
+            Plugin.Logger.LogWarning($"Could not compress map layer image {path}: {e.Message}");
+        }
 
         sprite = Sprite.Create(texture,
                                new Rect(0f, 0f, texture.width, texture.height),

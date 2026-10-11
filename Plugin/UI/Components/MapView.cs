@@ -224,7 +224,16 @@ namespace DynamicMaps.UI.Components
             {
                 var layerName = pair.Key;
                 var layerDef = pair.Value;
-                var layer = MapLayer.Create(MapLayerContainer, layerName, layerDef, -CoordinateRotation);
+                MapLayer layer = null;
+                try
+                {
+                    layer = MapLayer.Create(MapLayerContainer, layerName, layerDef, -CoordinateRotation);
+                }
+                catch (Exception e)
+                {
+                    Plugin.Logger.LogError($"Exception while creating layer {layerName}: {e}");
+                }
+
                 if (layer == null)
                 {
                     Plugin.Logger.LogError($"Could not create layer {layerName} for map {mapDef.DisplayName}");
