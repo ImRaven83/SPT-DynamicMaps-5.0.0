@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DynamicMaps.Config;
 using DynamicMaps.Data;
 using DynamicMaps.Utils;
 using TMPro;
@@ -190,6 +191,8 @@ namespace DynamicMaps.UI.Components
                                   bool showInRaid = true, Sprite sprite = null)
                             where T : MapMarker
         {
+            size *= Settings.MarkerScale.Value;
+
             var go = UIUtils.CreateUIGameObject(parent, $"MapMarker {text}");
 
             // this is to receive mouse events

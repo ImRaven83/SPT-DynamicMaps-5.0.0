@@ -30,6 +30,8 @@ namespace DynamicMaps.Config
         public static ConfigEntry<KeyboardShortcut> ZoomMapInHotkey;
         public static ConfigEntry<KeyboardShortcut> ZoomMapOutHotkey;
         public static ConfigEntry<float> ZoomMapHotkeySpeed;
+        public static ConfigEntry<float> MaxZoomOut;
+        public static ConfigEntry<float> MarkerScale;
 
         #endregion
         
@@ -288,6 +290,24 @@ namespace DynamicMaps.Config
                 new ConfigDescription(
                     "How fast the map should zoom by hotkey",
                     new AcceptableValueRange<float>(1f, 10f),
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(MaxZoomOut = config.Bind(
+                GeneralTitle,
+                "Max Zoom Out",
+                2.5f,
+                new ConfigDescription(
+                    "How far the map can be zoomed out, as a multiple of the zoom that fits the whole map on screen (1 = whole map just fits). Applies when a map is loaded",
+                    new AcceptableValueRange<float>(1f, 5f),
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(MarkerScale = config.Bind(
+                GeneralTitle,
+                "Marker Size",
+                0.7f,
+                new ConfigDescription(
+                    "Size multiplier for map icons (extracts, loot, players, etc.). Applies when a map is loaded",
+                    new AcceptableValueRange<float>(0.3f, 2f),
                     new ConfigurationManagerAttributes { })));
 
             ConfigEntries.Add(DumpInfoHotkey = config.Bind(
