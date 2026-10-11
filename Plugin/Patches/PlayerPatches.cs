@@ -60,7 +60,6 @@ namespace DynamicMaps.Patches
                 return;
             }
 
-            // the inventory controller subclasses are patched too, ignore the item if an override called base
             var itemNetId = item.Id.GetHashCode();
             if (ThrownItems.TryGetValue(itemNetId, out var existing) && existing == item)
             {
@@ -84,38 +83,6 @@ namespace DynamicMaps.Patches
         internal static void OnRaidEnd()
         {
             ThrownItems.Clear();
-        }
-    }
-
-    // ThrowItem is overridden by the inventory controller subclasses, in il2cpp each override is a separate
-    // native method so they need to be patched individually
-    internal class SinglePlayerInventoryThrowItemPatch : ModulePatch
-    {
-        protected override MethodBase GetTargetMethod()
-        {
-            return AccessTools.Method(typeof(Player.SinglePlayerInventoryController),
-                                      nameof(Player.SinglePlayerInventoryController.ThrowItem));
-        }
-
-        [PatchPostfix]
-        public static void PatchPostfix(Player.SinglePlayerInventoryController __instance, Item item)
-        {
-            PlayerInventoryThrowItemPatch.HandleThrownItem(__instance.Player, item);
-        }
-    }
-
-    internal class ClientPlayerInventoryThrowItemPatch : ModulePatch
-    {
-        protected override MethodBase GetTargetMethod()
-        {
-            return AccessTools.Method(typeof(ClientPlayer.ClientPlayerInventoryController),
-                                      nameof(ClientPlayer.ClientPlayerInventoryController.ThrowItem));
-        }
-
-        [PatchPostfix]
-        public static void PatchPostfix(ClientPlayer.ClientPlayerInventoryController __instance, Item item)
-        {
-            PlayerInventoryThrowItemPatch.HandleThrownItem(__instance.Player, item);
         }
     }
 }

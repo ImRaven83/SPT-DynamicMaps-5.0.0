@@ -47,22 +47,20 @@ namespace DynamicMaps
             ServerConfigLoader.LoadInBackground();
             Config.SettingChanged += (x, y) => Map?.ReadConfig();
 
-            // patches
-            TryEnable(new BattleUIScreenShowPatch()); // falls back to attaching on raid start
-            new CommonUIAwakePatch().Enable();
-            new MapScreenShowPatch().Enable();
-            new MapScreenClosePatch().Enable();
-            new GameStartedPatch().Enable();
-            new GameWorldOnDestroyPatch().Enable();
-            new GameWorldUnregisterPlayerPatch().Enable();
-            new LootItemInitPatch().Enable();
-            new GameWorldDestroyLootPatch().Enable();
-            new AirdropBoxOnBoxLandPatch().Enable();
-            new PlayerOnDeadPatch().Enable();
-            new PlayerInventoryThrowItemPatch().Enable();
-            new SinglePlayerInventoryThrowItemPatch().Enable();
-            TryEnable(new ClientPlayerInventoryThrowItemPatch());
-            new ShowViewButtonPatch().Enable();
+            // patches, a failing patch is logged and skipped so the rest of the mod keeps working
+            TryEnable(new BattleUIScreenShowPatch()); // also attaches on raid start, in case this can't be patched
+            TryEnable(new CommonUIAwakePatch());
+            TryEnable(new MapScreenShowPatch());
+            TryEnable(new MapScreenClosePatch());
+            TryEnable(new GameStartedPatch());
+            TryEnable(new GameWorldOnDestroyPatch());
+            TryEnable(new GameWorldUnregisterPlayerPatch());
+            TryEnable(new LootItemInitPatch());
+            TryEnable(new GameWorldDestroyLootPatch());
+            TryEnable(new AirdropBoxOnBoxLandPatch());
+            TryEnable(new PlayerOnDeadPatch());
+            TryEnable(new PlayerInventoryThrowItemPatch());
+            TryEnable(new ShowViewButtonPatch());
         }
 
         private void TryEnable(SPTushonka.Reflection.Patching.ModulePatch patch)
@@ -73,7 +71,7 @@ namespace DynamicMaps
             }
             catch (Exception e)
             {
-                Log.LogWarning($"Could not enable optional patch {patch.GetType().Name}: {e.Message}");
+                Log.LogError($"Could not enable patch {patch.GetType().Name}: {e.InnerException?.Message ?? e.Message}");
             }
         }
 

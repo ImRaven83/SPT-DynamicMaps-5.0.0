@@ -52,7 +52,9 @@ namespace DynamicMaps.Patches
 
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(GameWorld), nameof(GameWorld.OnDestroy));
+            // GameWorld.OnDestroy is empty in il2cpp and shares its native body with thousands of other
+            // methods, so patching it fires for all of them. Dispose has its own body and runs at raid end
+            return AccessTools.Method(typeof(GameWorld), nameof(GameWorld.Dispose));
         }
 
         [PatchPrefix]

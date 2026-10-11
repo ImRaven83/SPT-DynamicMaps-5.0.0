@@ -17,9 +17,10 @@ namespace DynamicMaps.Patches
         
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(EftBattleUIScreen),
-                                      nameof(EftBattleUIScreen.Show),
-                                      new Type[] { typeof(GamePlayerOwner) });
+            // Show is declared on the generic BattleUIScreen<,> base, Harmony needs the declared method
+            return AccessTools.DeclaredMethod(typeof(EftBattleUIScreen).BaseType,
+                                              nameof(EftBattleUIScreen.Show),
+                                              new Type[] { typeof(GamePlayerOwner) });
         }
 
         // Show is declared on the generic BattleUIScreen<,> base, so the battle UI is fetched from CommonUI
