@@ -1129,8 +1129,23 @@ namespace DynamicMaps.UI
             
             _mapView.LoadMap(mapDef, _scrollMask.GetRectTransform());
 
-            _mapSelectDropdown.OnLoadMap(mapDef);
-            _levelSelectSlider.OnLoadMap(mapDef, _mapView.SelectedLevel);
+            try
+            {
+                _mapSelectDropdown.OnLoadMap(mapDef);
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError($"Map select dropdown threw exception in ChangeMap: {e}");
+            }
+
+            try
+            {
+                _levelSelectSlider.OnLoadMap(mapDef, _mapView.SelectedLevel);
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError($"Level select slider threw exception in ChangeMap: {e}");
+            }
 
             foreach (var dynamicProvider in _dynamicMarkerProviders.Values)
             {

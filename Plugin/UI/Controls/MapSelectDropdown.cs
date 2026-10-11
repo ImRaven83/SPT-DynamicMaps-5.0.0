@@ -157,7 +157,15 @@ namespace DynamicMaps.UI.Controls
 
         public void OnLoadMap(MapDef mapDef)
         {
-            _dropdown.UpdateValue(_selectableMapDefs.IndexOf(mapDef));
+            var index = _selectableMapDefs?.IndexOf(mapDef) ?? -1;
+            if (index < 0)
+            {
+                return;
+            }
+
+            // il2cpp doesn't fill in the optional Nullable<int> parameters (they'd be passed as null and crash),
+            // so pass everything explicitly; no callback since the map is already being loaded
+            _dropdown.UpdateValue(index, false, new Il2CppSystem.Nullable<int>(), new Il2CppSystem.Nullable<int>(), false);
         }
 
         public bool IsDropdownOpen()

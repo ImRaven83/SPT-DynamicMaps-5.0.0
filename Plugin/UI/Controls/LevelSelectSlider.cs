@@ -124,13 +124,19 @@ namespace DynamicMaps.UI.Controls
 
         private void OnScrollbarChanged(float newValue)
         {
+            // no map loaded yet
+            if (_levels.Count == 0)
+            {
+                return;
+            }
+
             if (_levels.Count == 1)
             {
                 _scrollbar.value = 0.5f;
                 return;
             }
 
-            var levelIndex = Mathf.RoundToInt(newValue * (_levels.Count - 1));
+            var levelIndex = Mathf.Clamp(Mathf.RoundToInt(newValue * (_levels.Count - 1)), 0, _levels.Count - 1);
             var level = _levels[levelIndex];
             if (_selectedLevel != int.MinValue && _selectedLevel != level)
             {
