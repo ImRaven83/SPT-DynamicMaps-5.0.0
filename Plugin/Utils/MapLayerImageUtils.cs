@@ -68,6 +68,7 @@ public static class MapLayerImageUtils
         sprite.name = texture.name;
         sprite.hideFlags |= HideFlags.DontUnloadUnusedAsset;
 
+        Plugin.Logger.LogInfo($"Loaded map layer image {path} ({texture.width}x{texture.height}, {texture.format})");
         return MapCache[path] = sprite;
     }
 

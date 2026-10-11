@@ -204,6 +204,7 @@ namespace DynamicMaps.UI
             
             // load initial maps from path
             _mapSelectDropdown.LoadMapDefsFromPath(MapRelPath);
+            Plugin.Logger.LogInfo("MapScreen: set up finished");
         }
 
         private void OnDestroy()
@@ -320,6 +321,7 @@ namespace DynamicMaps.UI
 
         internal void OnMapScreenShow()
         {
+            Plugin.Logger.LogInfo("MapScreen: showing modded map screen");
             if (_peekComponent is not null)
             {
                 _peekComponent.WasMiniMapActive = ShowingMiniMap;

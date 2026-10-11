@@ -64,10 +64,17 @@ namespace DynamicMaps.UI.Controls
                 displayNames.Add(def.DisplayName);
             }
 
-            _dropdown.Show(displayNames.Cast<Il2CppSystem.Collections.Generic.IEnumerable<string>>(), null);
+            try
+            {
+                _dropdown.Show(displayNames.Cast<Il2CppSystem.Collections.Generic.IEnumerable<string>>(), null);
+                _dropdown.OnValueChanged.Subscribe((Action<int>)OnSelectDropdownMap);
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError($"Failed to fill map select dropdown: {e}");
+            }
 
-            // TODO: this references a BSG method of GInterface390
-            _dropdown.OnValueChanged.Subscribe((Action<int>)OnSelectDropdownMap);
+            Plugin.Logger.LogInfo($"Map select dropdown has {_selectableMapDefs.Count} maps");
 
             gameObject.SetActive(_selectableMapDefs.Count > 1);
         }

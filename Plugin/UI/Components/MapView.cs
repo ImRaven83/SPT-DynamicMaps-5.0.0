@@ -236,6 +236,8 @@ namespace DynamicMaps.UI.Components
                 _layers.Add(layer);
             }
 
+            Plugin.Logger.LogInfo($"MapView: created {_layers.Count} layers for {mapDef.DisplayName}");
+
             // select layer by the default level
             SelectTopLevel(mapDef.DefaultLevel);
 
