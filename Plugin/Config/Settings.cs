@@ -303,10 +303,10 @@ namespace DynamicMaps.Config
 
             ConfigEntries.Add(MarkerScale = config.Bind(
                 GeneralTitle,
-                "Marker Size",
+                "Marker And Label Size",
                 0.7f,
                 new ConfigDescription(
-                    "Size multiplier for map icons (extracts, loot, players, etc.). Applies when a map is loaded",
+                    "Size multiplier for map icons (extracts, loot, players, etc.) and their text labels, including the map's place names. Applies when a map is loaded",
                     new AcceptableValueRange<float>(0.3f, 2f),
                     new ConfigurationManagerAttributes { })));
 

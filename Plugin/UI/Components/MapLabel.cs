@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DynamicMaps.Config;
 using DynamicMaps.Data;
 using DynamicMaps.Utils;
 using TMPro;
@@ -73,7 +74,7 @@ namespace DynamicMaps.UI.Components
             label.Label = go.AddComponent<TextMeshProUGUI>();
             label.Color = def.Color;
             label.Label.autoSizeTextContainer = true;
-            label.Label.fontSize = def.FontSize;
+            label.Label.fontSize = def.FontSize * Settings.MarkerScale.Value; // scales together with the icons
             label.Label.alignment = TextAlignmentOptions.Center;
             label.Label.text = label.Text;
 

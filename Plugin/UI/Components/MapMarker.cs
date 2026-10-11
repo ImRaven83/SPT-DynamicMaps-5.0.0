@@ -83,6 +83,10 @@ namespace DynamicMaps.UI.Components
         private static float _markerMinFontSize = 9f;
         private static float _markerMaxFontSize = 13f;
 
+        // marker label text scales together with the icons
+        private static float MarkerMinFontSize => _markerMinFontSize * Settings.MarkerScale.Value;
+        private static float MarkerMaxFontSize => _markerMaxFontSize * Settings.MarkerScale.Value;
+
         public event Action<ILayerBound> OnPositionChanged;
 
         public string Text { get; protected set; }
@@ -241,8 +245,8 @@ namespace DynamicMaps.UI.Components
             marker.Label.alignment = TextAlignmentOptions.Top;
             marker.Label.enableWordWrapping = true;
             marker.Label.enableAutoSizing = true;
-            marker.Label.fontSizeMin = _markerMinFontSize;
-            marker.Label.fontSizeMax = _markerMaxFontSize;
+            marker.Label.fontSizeMin = MarkerMinFontSize;
+            marker.Label.fontSizeMax = MarkerMaxFontSize;
             marker.Label.text = marker.Text;
 
             marker._hasSetOutline = UIUtils.TrySetTMPOutline(marker.Label);
@@ -346,8 +350,8 @@ namespace DynamicMaps.UI.Components
             // try resetting text, since it seems like if outline fails, it doesn't size properly
             Label.enableAutoSizing = true;
             Label.enableWordWrapping = true;
-            Label.fontSizeMin = _markerMinFontSize;
-            Label.fontSizeMax = _markerMaxFontSize;
+            Label.fontSizeMin = MarkerMinFontSize;
+            Label.fontSizeMax = MarkerMaxFontSize;
             Label.alignment = TextAlignmentOptions.Top;
             Label.text = $"{Label.text}";
 
