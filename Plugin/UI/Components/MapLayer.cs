@@ -1,3 +1,4 @@
+using Il2CppInterop.Runtime.Attributes;
 using DynamicMaps.Data;
 using DynamicMaps.Utils;
 using System;
@@ -33,6 +34,7 @@ namespace DynamicMaps.UI.Components
         public RectTransform RectTransform => gameObject.transform.TryCast<RectTransform>();
 
         public int Level => _def.Level;
+        [HideFromIl2Cpp] // takes a managed enum, keep it out of il2cpp injection
         public LayerStatus Status { get; private set; }
         public bool IsOnDefaultLevel { get; set; }
 

@@ -1,3 +1,4 @@
+using Il2CppInterop.Runtime.Attributes;
 using BepInEx.Unity.IL2CPP.Configuration;
 using System;
 using System.Collections;
@@ -531,6 +532,7 @@ namespace DynamicMaps.UI
             _levelSelectSlider.gameObject.SetActive(false);
         }
 
+        [HideFromIl2Cpp] // takes a managed enum, keep it out of il2cpp injection
         private Vector2 ConvertEnumToScreenPos(EMiniMapPosition pos)
         {
             // 0,0 Bottom left
@@ -556,6 +558,7 @@ namespace DynamicMaps.UI
             return Vector2.zero;
         }
 
+        [HideFromIl2Cpp] // takes a managed enum, keep it out of il2cpp injection
         private Vector2 ConvertEnumToScenePivot(EMiniMapPosition pos)
         {
             // Top right = neg neg

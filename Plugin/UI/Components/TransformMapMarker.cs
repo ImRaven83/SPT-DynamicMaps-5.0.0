@@ -1,3 +1,4 @@
+using Il2CppInterop.Runtime.Attributes;
 using System;
 using Comfort.Common;
 using DynamicMaps.Utils;
@@ -11,6 +12,7 @@ namespace DynamicMaps.UI.Components
         private static Vector2 _pivot = new Vector2(0.5f, 0.5f);
 
         public Transform FollowingTransform { get; private set; }
+        [HideFromIl2Cpp] // takes a managed enum, keep it out of il2cpp injection
         public MathUtils.RotationAxis RotationAxis { get; set; } = MathUtils.RotationAxis.Y;
 
         private float _callbackTime = _maxCallbackTime;  // make sure to start with a callback

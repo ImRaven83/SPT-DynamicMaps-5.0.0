@@ -1,3 +1,4 @@
+using Il2CppInterop.Runtime.Attributes;
 using System;
 using System.Collections.Generic;
 using DynamicMaps.Config;
@@ -94,6 +95,7 @@ namespace DynamicMaps.UI.Components
             Label.text = Label.text;  // try resetting text, since it seems like if outline fails, it doesn't size properly
         }
 
+        [HideFromIl2Cpp] // takes a managed enum, keep it out of il2cpp injection
         public void HandleNewLayerStatus(LayerStatus status)
         {
             Label.color = new Color(Label.color.r, Label.color.g, Label.color.b, LabelAlphaLayerStatus[status]);

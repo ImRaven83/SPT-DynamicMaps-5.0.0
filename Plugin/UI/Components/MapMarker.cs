@@ -1,3 +1,4 @@
+using Il2CppInterop.Runtime.Attributes;
 using System;
 using System.Collections.Generic;
 using DynamicMaps.Config;
@@ -292,6 +293,7 @@ namespace DynamicMaps.UI.Components
             SetRotation(rotation);
         }
 
+        [HideFromIl2Cpp] // takes a managed enum, keep it out of il2cpp injection
         public void HandleNewLayerStatus(LayerStatus status)
         {
             if (!ShowInRaid && GameUtils.IsInRaid())
